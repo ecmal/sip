@@ -1,0 +1,12 @@
+{
+  "name"          : "sip",
+  "version"       : "0.0.1",
+  "registry"      : "github",
+  "vendor"        : "ecmal",
+  "main"          : "Sip",
+  "libraries"     : {
+    "core"        : "0.0.1",
+    "node"        : "0.0.1",
+    "runtime"     : "0.0.1"
+  }
+}
