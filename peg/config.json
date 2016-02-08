@@ -1,0 +1,8 @@
+{
+  "output":"source",
+  "debug":true,
+  "optimize": "size",
+  "allowedStartRules": [
+    "SipUri","Other"
+  ]
+}

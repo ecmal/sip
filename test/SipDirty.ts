@@ -1,11 +1,15 @@
 import * as util from 'node/util';
 import * as net from 'node/net';
 import * as dns from 'node/dns';
-import * as assert from 'node/assert';
+import assert from 'node/assert';
 import * as dgram from 'node/dgram';
 import * as HTTP from 'node/http';
 
 import * as querystring from 'node/querystring';
+
+import {WsServer} from 'http/ws/server';
+import {WsConnection} from "http/ws/connection";
+
 //import * as WS from 'node/ws';
 
 export interface Body {
@@ -49,13 +53,47 @@ export interface Transaction {
 }
 
 export abstract class SIP {
-    send(m:Body, callback:Function):void {};
+    send(m:Body, callback?:Function):void {};
     stop():void{}
 }
 
 
 
-class Sip extends SIP{
+class Sip extends SIP {
+
+    private static compactForm:Object = {
+        i: 'call-id',
+        m: 'contact',
+        e: 'contact-encoding',
+        l: 'content-length',
+        c: 'content-type',
+        f: 'from',
+        s: 'subject',
+        k: 'supported',
+        t: 'to',
+        v: 'via'
+    };
+    private static parsers:any = {
+        'to': Sip.parseAOR,
+        'from': Sip.parseAOR,
+        'contact': (v, h)=> {
+            if(v == '*')
+                return v;
+            else
+                return Sip.parseMultiHeader(Sip.parseAOR, v, h);
+        },
+        'route': Sip.parseMultiHeader.bind(0, Sip.parseAOR),
+        'record-route': Sip.parseMultiHeader.bind(0, Sip.parseAOR),
+        'cseq': Sip.parseCSeq,
+        'content-length': (v) =>{ return +v.s; },
+        'via': Sip.parseMultiHeader.bind(0, Sip.parseVia),
+        'www-authenticate': Sip.parseMultiHeader.bind(0, Sip.parseAuthHeader),
+        'proxy-authenticate': Sip.parseMultiHeader.bind(0, Sip.parseAuthHeader),
+        'authorization': Sip.parseMultiHeader.bind(0,Sip.parseAuthHeader),
+        'proxy-authorization': Sip.parseMultiHeader.bind(0, Sip.parseAuthHeader),
+        'authentication-info': Sip.parseAuthenticationInfoHeader,
+        'refer-to': Sip.parseAOR
+    };
 
     public static debug(e:any):void {
         if(e.stack) {
@@ -77,7 +115,6 @@ class Sip extends SIP{
             return m;
         }
     }
-
     private static parseRequest(rq:string, m:Body):Body {
         var r = rq.match(/^([\w\-.!%*_+`'~]+)\s([^\s]+)\sSIP\s*\/\s*(\d+\.\d+)/);
 
@@ -134,7 +171,7 @@ class Sip extends SIP{
         return Sip.parseParams(data, {name: r[1], uri: r[2] || r[3]});
     }
 
-    private static  parseVia(data:any):any {
+    private static parseVia(data:any):any {
         var r = Sip.applyRegex(/SIP\s*\/\s*(\d+\.\d+)\s*\/\s*([\S]+)\s+([^\s;:]+)(?:\s*:\s*(\d+))?/g, data);
         return Sip.parseParams(data, {version: r[1], protocol: r[2], host: r[3], port: r[4] && +r[4]});
     }
@@ -192,7 +229,7 @@ class Sip extends SIP{
         return o;
     }
 
-    private static makeResponse(rq:Body, status:number|string, reason:string|any):Body {
+    private static makeResponse(rq:Body, status:number|string, reason?:string|any):Body {
         return {
             status: status,
             reason: reason || '',
@@ -227,14 +264,13 @@ class Sip extends SIP{
         };
     }
 
-    private static  generateBranch():string {
+    private static generateBranch():string {
         return ['z9hG4bK',Math.round(Math.random()*1000000)].join('');
     }
 
     private static parseUri(s:string):URI {
         if(typeof s === 'object')
             return s;
-
         var re = /^([^:]+):(?:([^\s>:@]+)(?::([^\s@>]+))?@)?([\w\-\.]+)(?::(\d+))?((?:;[^\s=\?>;]+(?:=[^\s?\;]+)?)*)(\?([^\s&=>]+=[^\s&=>]+)(&[^\s&=>]+=[^\s&=>]+)*)?$/;
 
         var r = re.exec(s);
@@ -491,7 +527,9 @@ class Sip extends SIP{
     }
 
     private static createClientTransaction(rq:any, transport:Function|any, tu:any, cleanup:any):Transaction {
-        assert.ok(rq.method !== 'INVITE');
+        if(rq.method == 'INVITE'){
+            throw new Error('not invite');
+        }
 
         var sm = Sip.makeSM();
 
@@ -637,43 +675,38 @@ class Sip extends SIP{
         };
     }
 
+    private static parse(data:any):Body|any {
+        data = data.split(/\r\n(?![ \t])/);
+
+        if(data[0] === '')
+            return;
+
+        var m:Body = {};
+
+        if(!(Sip.parseResponse(data[0], m) || Sip.parseRequest(data[0], m)))
+            return;
+
+        m.headers = {};
+
+        for(var i = 1; i < data.length; ++i) {
+            var r = data[i].match(/^([\S]*?)\s*:\s*([\s\S]*)$/);
+            if(!r) {
+                return;
+            }
+
+            var name = querystring.unescape(r[1]).toLowerCase();
+            name = Sip.compactForm[name] || name;
+
+            m.headers[name] = (Sip.parsers[name] || Sip.parseGenericHeader)({s:r[2], i:0}, m.headers[name]);
+        }
+
+        return m;
+    }
+
     private compactForm:Object;
     private parsers:Object;
     private stringifiers:Object;
-    private static compactForm:Object = {
-        i: 'call-id',
-        m: 'contact',
-        e: 'contact-encoding',
-        l: 'content-length',
-        c: 'content-type',
-        f: 'from',
-        s: 'subject',
-        k: 'supported',
-        t: 'to',
-        v: 'via'
-    };
 
-    private static parsers:any = {
-        'to': Sip.parseAOR,
-        'from': Sip.parseAOR,
-        'contact': (v, h)=> {
-            if(v == '*')
-                return v;
-            else
-                return Sip.parseMultiHeader(Sip.parseAOR, v, h);
-        },
-        'route': Sip.parseMultiHeader.bind(0, Sip.parseAOR),
-        'record-route': Sip.parseMultiHeader.bind(0, Sip.parseAOR),
-        'cseq': Sip.parseCSeq,
-        'content-length': (v) =>{ return +v.s; },
-        'via': Sip.parseMultiHeader.bind(0, Sip.parseVia),
-        'www-authenticate': Sip.parseMultiHeader.bind(0, Sip.parseAuthHeader),
-        'proxy-authenticate': Sip.parseMultiHeader.bind(0, Sip.parseAuthHeader),
-        'authorization': Sip.parseMultiHeader.bind(0,Sip.parseAuthHeader),
-        'proxy-authorization': Sip.parseMultiHeader.bind(0, Sip.parseAuthHeader),
-        'authentication-info': Sip.parseAuthenticationInfoHeader,
-        'refer-to': Sip.parseAOR
-    };
 
 
     constructor(){
@@ -693,13 +726,14 @@ class Sip extends SIP{
                 return 'From: '+this.stringifyAOR(h)+'\r\n';
             },
             contact: (h)=> {
-                return 'Contact: '+ ((h !== '*' && h.length) ? h.map(this.stringifyAOR).join(', ') : '*') + '\r\n';
+                return 'Contact: '+ ((h !== '*' && h.length) ? h.map(r=>this.stringifyAOR(r)).join(', ') : '*') + '\r\n';
             },
             route: (h) =>{
-                return h.length ? 'Route: ' + h.map(this.stringifyAOR).join(', ') + '\r\n' : '';
+
+                return h.length ? 'Route: ' + h.map(r=>this.stringifyAOR(r)).join(', ') + '\r\n' : '';
             },
             'record-route': (h) =>{
-                return h.length ? 'Record-Route: ' + h.map(this.stringifyAOR).join(', ') + '\r\n' : '';
+                return h.length ? 'Record-Route: ' + h.map(r=>this.stringifyAOR(r)).join(', ') + '\r\n' : '';
             },
             cseq: (cseq)=> {
                 return 'CSeq: '+cseq.seq+' '+cseq.method+'\r\n';
@@ -727,34 +761,6 @@ class Sip extends SIP{
         var r = Sip.parseAOR({s:data, i:0});
         if (r&&r.uri) r.uri=this.parseUri(r.uri);
         return r;
-    }
-
-    private static parse(data:any):Body|any {
-        data = data.split(/\r\n(?![ \t])/);
-
-        if(data[0] === '')
-            return;
-
-        var m:Body = {};
-
-        if(!(Sip.parseResponse(data[0], m) || Sip.parseRequest(data[0], m)))
-            return;
-
-        m.headers = {};
-
-        for(var i = 1; i < data.length; ++i) {
-            var r = data[i].match(/^([\S]*?)\s*:\s*([\s\S]*)$/);
-            if(!r) {
-                return;
-            }
-
-            var name = querystring.unescape(r[1]).toLowerCase();
-            name = Sip.compactForm[name] || name;
-
-            m.headers[name] = (Sip.parsers[name] || Sip.parseGenericHeader)({s:r[2], i:0}, m.headers[name]);
-        }
-
-        return m;
     }
 
     public parseUri(s:string):URI {
@@ -831,11 +837,11 @@ class Sip extends SIP{
         return s;
     }
 
-    public makeResponse(rq:Body, status:number|string, reason:string):Body {
+    public makeResponse(rq:Body, status:number|string, reason?:string):Body {
         return Sip.makeResponse(rq,status,reason);
     }
 
-    public copyMessage(msg:Body, deep:any):Body {
+    public copyMessage(msg:Body, deep?:any):Body {
         if(deep) return Sip.clone(msg, true);
 
         var r = {
@@ -909,25 +915,24 @@ class Sip extends SIP{
         return m;
     }
 
-    private  makeWsTransport(options:any, callback:Function):Transport {
+    private makeWsTransport(options:any, callback:Function):Transport {
         var connections = Object.create(null);
         var self = this;
-        function init(ws, remote) {
+        function init(ws:any,remote) {
             var stream = ws._stream;
             var id = [remote.address, remote.port].join(),
-                local = {protocol: 'WS', address: stream.address().address, port: stream.address().port},
+                local = {protocol: 'WS', address: Sip.formatAddress(stream.address().address), port: stream.address().port},
                 pending = [],
                 refs = 0;
 
             function send(m) {
-
                 if (typeof m=="object") {
                     if(m.method) {
                         m.headers.via[0].host = local.address;
                         m.headers.via[0].port = options.port;
                         m.headers.via[0].protocol = local.protocol;
                     }
-                    options.logger && options.logger.send && options.logger.send(m, target);
+                    options.logger && options.logger.send && options.logger.send(m);
                     m = self.stringify(m);
                 }
                 try {
@@ -944,7 +949,6 @@ class Sip extends SIP{
                 callback(m, remote);
             });
             ws.onmessage = function(event) { return parser(event.data); }
-
             ws.onclose = function() { delete connections[id]; }
 
             stream.on('timeout',  function() { if(refs === 0) ws.close(); });
@@ -968,16 +972,13 @@ class Sip extends SIP{
             return connections[id];
         }
 
-        var http = HTTP.createServer(function(req,res) {
-        });
+        var http = HTTP.createServer();
         http.on('error', function(err) {
             console.error('sip.js HTTP server: '+err);
         });
-        http.on('upgrade', function(req, sock, head) {
-            var ws = new WebSocket(req, sock, head, ['sip']);
-            if (!ws || !ws._stream) return;
-            var stream = ws._stream;
-            init(ws, {protocol: 'WS', address: stream.remoteAddress, port: stream.remotePort});
+        var ws:WsServer = WsServer.inject(http,'sip');
+        ws.on('connection',(connection:WsConnection)=>{
+            //init(ws,{protocol: 'WS', address: stream.remoteAddress, port: stream.remotePort});
         });
 
         http.listen(options.port || 5060, options.address);
@@ -992,8 +993,10 @@ class Sip extends SIP{
             destroy: function() { http.close(); }
         }
     }
-
-    private  makeTcpTransport(options:any, callback:Function):Transport {
+    private static formatAddress(add:string){
+        return add.replace(/[^\d]*(\d+\.\d+\.\d+\.\d+).*/,'$1')
+    }
+    private makeTcpTransport(options:any, callback:Function):Transport {
         var connections = Object.create(null);
         var self = this;
         function init(stream, remote) {
@@ -1005,7 +1008,7 @@ class Sip extends SIP{
             function send(m) {
                 if (stream.readyState === 'opening') return pending.push(m);
                 if (!local.address) {
-                    local.address = stream.address().address;
+                    local.address = Sip.formatAddress(stream.address().address);
                     local.port = stream.address().port;
                 }
 
@@ -1015,7 +1018,7 @@ class Sip extends SIP{
                         m.headers.via[0].port = options.port;
                         m.headers.via[0].protocol = local.protocol;
                     }
-                    options.logger && options.logger.send && options.logger.send(m, target);
+                    options.logger && options.logger.send && options.logger.send(m);
                     m = new Buffer(self.stringify(m), 'ascii');	// TODO: ascii conversions everywhere - speed?
                 }
                 try {
@@ -1065,7 +1068,7 @@ class Sip extends SIP{
         }
 
         var server = net.createServer(function(stream) {
-            init(stream, {protocol: 'TCP', address: stream.remoteAddress, port: stream.remotePort});
+            init(stream, {protocol: 'TCP', address: Sip.formatAddress(stream.remoteAddress), port: stream.remotePort});
         });
 
         server.listen(options.port || 5060, options.address);
@@ -1082,7 +1085,7 @@ class Sip extends SIP{
         return transport;
     }
 
-    private  makeUdpTransport(options:any, callback:Function):Transport {
+    private makeUdpTransport(options:any, callback:Function):Transport {
 
         var socket:any = dgram.createSocket(net.isIPv6(options.address) ? 'udp6' : 'udp4', (data, rinfo) =>{
             var msg = this.parse(data);
@@ -1108,27 +1111,26 @@ class Sip extends SIP{
             return null;
         }
 
-        var local = {protocol: 'UDP', address: socket.address().address, port: socket.address().port};
-        var self = this;
+        var local = {protocol: 'UDP', address: Sip.formatAddress(socket.address().address), port: socket.address().port};
         return {
-            open: function(remote, error) {
+            open: (remote, error) =>{
                 function cb(err) { if (err) error(err); }
                 return {
-                    send: function(m) {
+                    send:(m)=>{
                         if (!socket) return;
                         if (typeof m=="object") {
                             if(m.method) {
-                                m.headers.via[0].host = this.local.address;
+                                m.headers.via[0].host = local.address;
                                 m.headers.via[0].port = options.port;
-                                m.headers.via[0].protocol = this.local.protocol;
+                                m.headers.via[0].protocol = local.protocol;
                             }
-                            options.logger && options.logger.send && options.logger.send(m, target);
-                            m = new Buffer(self.stringify(m), 'ascii');
+                            options.logger && options.logger.send && options.logger.send(m);
+                            m = new Buffer(this.stringify(m), 'ascii');
                         }
                         //console.log("UDP SEND: "+m.toString());
                         socket.send(m, 0, m.length, remote.port, remote.address, cb);
                     },
-                    release: function() {},
+                    release: ()=>{},
                     local: local,
                 }
             },
@@ -1184,7 +1186,6 @@ class Sip extends SIP{
     public makeTransactionLayer(options:any, transport:Transport):any {
         return Sip.makeTransactionLayer(options,transport);
     }
-
 
     public create(options:any, callback:Function):any {
         var self = this;
@@ -1259,9 +1260,6 @@ class Sip extends SIP{
 
         return r;
     }
-
-
-
 
 }
 
