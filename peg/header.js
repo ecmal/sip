@@ -1,37 +1,58 @@
-function Model(type,data){
-    if(typeof options[type]=='function'){
-        var model = new options[type]();
-        for(var i in data){
-            model[i] = data[i];
-        }
-        return model;
-    }else{
-        this.type = type;
-        for(var i in data){
-            this[i] = data[i];
-        }
+function list (first, rest) {
+    return [first].concat(rest);
+}
+function pairsToObject(pairs){
+    if(pairs && pairs.length){
+        var value = {};
+        pairs.forEach(function(pair){
+            var key = pair[0],val = pair[1];
+            if(!value[key]){
+                value[key]=val
+            }else
+            if(Array.isArray(val)){
+                value[key] = value[key].concat(val)
+            }
+        });
+        return value;
     }
 }
 
-var Rules = {
-    SipUri : function(sh,ui,hp,pm,hd){
-        var uri = {protocol:sh,hostname:hp.host}
-        if(hp.port){
-            uri.port = hp.port
+if(!options.Models){
+    options.Models = Object.create(null);
+}
+function Model(data){
+    Object.defineProperty(this,'class',{
+        enumerable:true,
+        value:this.constructor.name
+    });
+    if(data){this.set(data);}
+}
+Model.prototype.set = function update(data){
+    for(var key in data){
+        if(typeof data[key]!='undefined'){
+            this[key] = data[key];
+        }else{
+            delete this[key];
         }
-        if(ui){
-            uri.username = ui.user
-            if(ui.pass){
-                uri.password = ui.pass
-            }
-        }
-        if(pm && pm.length){
-            uri.params=pm;
-        }
-
-        if(hd && hd.length){
-            uri.headers=hd;
-        }
-        return new Model('SipUri',uri);
     }
+    return this;
 };
+function E(d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+}
+function M(name,params){
+    var Class;
+    if(options.Models && options.Models[name]){
+        Class = options.Models[name];
+    }else{
+        Class = options.Models[name] = (function(){
+            var model;
+            eval('model = function '+name+'(data){Model.call(this,data)}');
+            E(model,Model);
+            return model;
+        })()
+    }
+    return new Class(params);
+}

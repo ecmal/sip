@@ -1,12 +1,12 @@
 import {Grammar} from "./grammar";
-import {SipUri} from "./models";
+import {Model} from "./models";
+import * as Models from "./models";
 
 export class Parser {
-    static parse(content:string,type:string|Function):any{
-        var startRule = type && (<Function>type).name || type;
-        return Grammar.parse(content,{
-            startRule,
-            SipUri
+    public static parse<T extends Model>(content:string, model?:{new():T;}):T{
+        return <T>Grammar.parse(content,{
+            startRule   : model.name||'Start',
+            Models      : Models
         })
     }
 }

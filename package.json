@@ -13,8 +13,7 @@
     "http"        : "0.0.1",
     "core"        : "0.0.1",
     "node"        : "0.0.1",
-    "runtime"     : "0.0.1",
-    "common"      : "0.0.1"
+    "runtime"     : "0.0.2"
   },
   "scripts"       : {
     "grammar"     : "elp run -t tools/grammar",

@@ -1,8 +1,9 @@
 {
   "output":"source",
   "debug":true,
-  "optimize": "size",
+  "optimize": "speed",
   "allowedStartRules": [
-    "SipUri","Other"
+    "Message",
+    "Contact"
   ]
 }
