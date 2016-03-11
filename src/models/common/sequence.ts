@@ -2,8 +2,8 @@ import {Model} from "../model";
 import {Uri} from "./uri";
 export class Sequence extends Model {
     public method:string;
-    public sequence:number;
+    public value:number;
     toString(options?:any){
-        return `${this.sequence} ${this.method}`;
+        return `${this.value} ${this.method}`;
     }
 }

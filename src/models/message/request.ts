@@ -8,13 +8,24 @@ export class Request extends Message {
         return <Via[]>this.headers.Via;
     }
     toString(){
-        var lines = [
+        var header = (k,h)=>{
+            if(Array.isArray(h)){
+                return h.map(i=>header(k,i))
+            }else{
+                return [`${k}: ${h}`]
+            }
+        };
+        var headers = ()=>{
+            return Object.keys(this.headers).map(k=>{
+                return header(k,this.headers[k]).join('\r\n')
+            })
+        };
+        return [
             `${this.method} ${this.uri} ${this.version}`,
-            ...this.via.map(v=>`Via: ${v.toString()}`)
-        ];
-        lines.push('');
-        lines.push('');
-        return lines.join('\r\n');
+            ...headers(),
+            '',
+            ''
+        ].join('\r\n');
     }
 }
 

@@ -17,7 +17,7 @@ export class Model extends Object{
         return this;
     }
     inspect(){
-        return this.toString({inspect:true});
+        return  `${this.constructor.name}(${JSON.stringify(this,null,2)})`;
     }
     toString(options?:any){
         return `${this.constructor.name}(${JSON.stringify(this,null,2)})`;

@@ -4,6 +4,7 @@
   "optimize": "speed",
   "allowedStartRules": [
     "Message",
+    "Uri",
     "Contact"
   ]
 }

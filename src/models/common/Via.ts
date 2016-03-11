@@ -1,5 +1,6 @@
 import {Model} from "../model";
 import {Uri} from "./uri";
+import {Util} from "./utils";
 
 export class Via extends Model {
 
@@ -12,9 +13,7 @@ export class Via extends Model {
 
     toString(options?:any){
         return `${this.protocol}/${this.version}/${this.transport} ${this.host}:${this.port}${
-            this.params?Object.keys(this.params).map(k=>`;${k}${
-                this.params[k]?(`=${this.params[k]}`):''
-            }`).join(''):''    
+            Util.toParamString(this.params)
         }`;
     }
 }

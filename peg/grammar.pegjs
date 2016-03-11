@@ -15,7 +15,6 @@ Request
         case 'NOTIFY'    :ClassName='NotifyRequest';break;
         case 'REFER'     :ClassName='ReferRequest';break;
     }
-    console.info(ClassName)
     return M(ClassName,{
         method    : m,
         uri       : u,
@@ -33,7 +32,7 @@ Response
   headers : h
 })}
 
-RequestUri    = SipUri / AbsoluteUri
+RequestUri    = Uri / AbsoluteUri
 // Headers
 Headers = CRLF h:Header* { return pairsToObject(h); }
 
@@ -64,9 +63,9 @@ Header
 / k:x_token HCOLON v:Reason_Phrase CRLF {return [k,v]}
 ;
 
-// SipUri
+// Uri
 
-SipUri         
+Uri         
 = s:UriScheme ":" u:UriUserInfo? d:UriServerInfo p:UriParams? h:UriHeaders?
 { return M('Uri',{
   scheme   : s,
@@ -78,7 +77,7 @@ SipUri
   headers  : h ? h : void 0
 }).set(u) }
 
-SipUriNoParams 
+UriNoParams 
 = s:UriScheme ":" u:UriUserInfo? d:UriServerInfo
 { return M('Uri',{
   scheme   : s,
@@ -410,9 +409,9 @@ Contact
 ContactParams = p:contact_params* {return pairsToObject(p)}
 
 
-name_addr = n:displayName? LAQUOT u:SipUri RAQUOT
+name_addr = n:displayName? LAQUOT u:Uri RAQUOT
 {return {name:n?n:u.username,uri:u}}
-addr_spec = u:SipUriNoParams
+addr_spec = u:UriNoParams
 {return {name:u.username,uri:u}}
 
 
@@ -429,10 +428,9 @@ contact_params      = SEMI p:(c_p_q / c_p_expires /c_p_reg/ c_p_instance/ contac
 
 c_p_q               = "q"i EQUAL q: qvalue { return ['q',q]; }
 c_p_expires         = "expires"i EQUAL e: integer { return ['expires',e]; }
-c_p_reg             = "reg-id"i EQUAL v: DIGIT+ { return ['regId',parseInt(v)]; }
-c_p_instance        = "+sip.instance"i EQUAL LDQUOT "<" v:instance_val ">" RDQUOT { return ['sipInstance',v]; }
-instance_val        =  uric* {return text()}
-
+c_p_reg             = "reg-id"i EQUAL v: DIGIT+ { return ['reg-id',parseInt(v)]; }
+c_p_instance        = "+sip.instance"i EQUAL LDQUOT "<" v:instance_val ">" RDQUOT { return ['+sip.instance',v]; }
+instance_val        = uric* {return text()}
 contact_extension   = generic_param
 
 
@@ -441,7 +439,7 @@ qvalue              = "0" ( "." DIGIT? DIGIT? DIGIT? )? {
                         return parseFloat(text()); }
 
 generic_param       = param: token  value: ( EQUAL v:gen_value {return v})? 
-{ return [param.toLowerCase(), value?value[0]:true] }
+{ return [param.toLowerCase(), value?value[0]:null] }
 
 gen_value           = token / host / quoted_string
 
