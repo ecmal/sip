@@ -2,6 +2,8 @@ import {Emitter} from "./events";
 import {Parser} from "./parser";
 import * as NET from "node/net";
 import {Socket} from "node/net";
+import {Message} from "sip/models/message";
+import {Response} from "sip/models/message/response";
 
 
 export class SipClient extends Emitter {
@@ -38,11 +40,14 @@ export class SipClient extends Emitter {
             var sep,message,data:Buffer = Buffer.concat([temp,chunk],temp.length+chunk.length);
             while((sep=SipClient.indexOf(data))>0){
                 message = data.toString('utf8',0,sep+2);
-                console.info(message);
-                console.info("MESSAGE",JSON.stringify(Parser.parse(message),null,2));
                 data = data.slice(sep+2);
             }
+            console.log(message);
+            console.log( Parser.parse(message,Message) instanceof Response);
+            this.emit('SIPresponse',message);
         })
+
+
     }
     register(){
         this.send(SipClient.getMessage(`
@@ -64,7 +69,6 @@ export class SipClient extends Emitter {
         `));
     }
     send(text:string){
-        console.info(text);
         this.socket.write(text);
     }
 }

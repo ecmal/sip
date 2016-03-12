@@ -8,7 +8,10 @@ const TRANSPORTS:{[k:string]:Transport} = Object.create(null);
 export class Transport extends Emitter {
 
     static get(uri:string|Contact):Transport{
+        //console.info(uri);
+
         var contact = (uri instanceof Contact)?uri:Parser.parse(<string>uri,Contact);
+        //var contact = (uri instanceof Contact)?uri:Contact.parse(<string>uri);
         return TRANSPORTS[contact.uri.server] || new Transport(contact);
     }
 

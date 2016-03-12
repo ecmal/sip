@@ -6,7 +6,8 @@ export class Message extends Model {
     version:Version;
     headers:any;
 
-    send(transport:Transport){
+        send(transport:Transport){
         return Promise.resolve(this)
+        //return transport.send(this.toString());
     }
 }

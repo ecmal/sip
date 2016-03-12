@@ -10,7 +10,7 @@ import {Response} from "./models/message/response"
 import {Message} from "./models/message"
 
 export {
-    Uri,Contact,Version,Via,Mime,Agent,Sequence
+    Uri,Contact,Version,Via,Mime,Agent,Sequence,
     Message,
     Request,RegisterRequest,
     Response

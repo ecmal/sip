@@ -1,5 +1,6 @@
 export class Model extends Object{
     constructor(data?){
+        super();
         Object.defineProperty(this,'class',{
             enumerable:true,
             value:this.constructor.name

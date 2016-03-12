@@ -1,6 +1,7 @@
 import {Message} from "../message";
 import {Uri} from "../common/uri";
-import {Via} from "../common/Via";
+import {Via} from "../common/via";
+import {Transport} from "../../transport";
 export class Request extends Message {
     public method:string;
     public uri:Uri;
@@ -47,5 +48,10 @@ export class Request extends Message {
  * Content-Length: 0
  */
 export class RegisterRequest extends Request {
-
+    send(transport:Transport){
+        return new Promise((accept,reject)=>{
+            super.send(transport);
+            //transport.on('message')
+        });
+    }
 }
