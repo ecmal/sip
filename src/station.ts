@@ -30,20 +30,33 @@ export class Station extends Emitter {
     }
 
     public register(transport?:Transport):Promise<Station>{
+
         this.transport = transport?transport:Transport.get(this.contact);
         try {
-            console.info(new RegisterRequest({
+            var req=new RegisterRequest({
                 uri: new Uri({
                     scheme :this.contact.uri.scheme,
                     host   :this.contact.uri.host,
                     port   :this.contact.uri.port
                 }),
                 headers     : {
-                    Contact : this.contact,
-                    From    : this.contact,
-                    To      : this.contact
+                    Via             :'SIP/2.0/TCP 192.168.10.103:37273',
+                    Contact         :this.contact,
+                    From            :this.contact,
+                    To              :this.contact,
+                    'Call-ID'       :'a1',
+                    CSeq            :'1 REGISTER',
+                    Expires         :'300',
+                    'User-Agent'    :'Test Agent',
+                    'Content-Length':'0'
+
                 }
-            }).toString());
+            }).toString();
+            this.transport.send(req);
+            this.transport.on('message',(message)=>{
+                 //console.info(message);
+            });
+
         }catch(ex){console.info(ex)}
         return Promise.resolve(this);
         

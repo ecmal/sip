@@ -3,6 +3,7 @@ import {Emitter} from "./events";
 import {Parser} from "./parser";
 import {Socket} from "node/net";
 import * as NET from "node/net";
+import {Message} from "./models/message";
 
 const TRANSPORTS:{[k:string]:Transport} = Object.create(null);
 
@@ -12,8 +13,6 @@ export class Transport extends Emitter {
         var contact = (uri instanceof Contact) ? uri : new Contact(uri);
         return TRANSPORTS[contact.uri.server] || new Transport(contact);
     }
-
-    
 
     private static separator = new Buffer('\r\n\r\n');
     private static indexOf(buffer:Buffer):number{
@@ -67,7 +66,7 @@ export class Transport extends Emitter {
                     return message.headers.contentLength==message.body.length;
                 }
                 function writeHead(header){
-                    message = Parser.parse(header);
+                    message = Parser.parse(header,Message);
                 }
                 function writeBody(chunk){
                     var totalLength = message.headers.contentLength;
