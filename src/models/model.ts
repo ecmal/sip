@@ -1,11 +1,22 @@
-export class Model extends Object{
+
+export class Model  {
+    protected static parser:any;
+    public static new(text):Model{
+        if(!Model.parser){
+            Object.defineProperty(Model,'parser',<any>{
+                value: Reflect.Module.get('sip/parser').exports.Parser
+            })
+        }
+        return Model.parser.parse(text,this);
+    }
     constructor(data?){
-        super();
-        Object.defineProperty(this,'class',{
+        Object.defineProperty(this,'class',<any>{
             enumerable:true,
             value:this.constructor.name
         });
-        if(data){this.set(data);}
+        if(data){
+            this.set(data);
+        }
     }
     set(data:any){
         for(var key in data){
@@ -18,9 +29,16 @@ export class Model extends Object{
         return this;
     }
     inspect(){
-        return  `${this.constructor.name}(${JSON.stringify(this,null,2)})`;
+        return `${this.constructor.name}(${JSON.stringify(this,null,2)})`;
     }
     toString(options?:any){
         return `${this.constructor.name}(${JSON.stringify(this,null,2)})`;
+    }
+    clone(){
+        var object = Object.create(null);
+        for(var key in this){
+            object[key] = this[key]
+        }
+        return new (<any>this.constructor)(object);
     }
 }

@@ -8,6 +8,7 @@ export class Request extends Message {
     get via():Via[]{
         return <Via[]>this.headers.Via;
     }
+
     toString(){
         var header = (k,h)=>{
             if(Array.isArray(h)){
@@ -28,6 +29,7 @@ export class Request extends Message {
             ''
         ].join('\r\n');
     }
+
 }
 
 /**
@@ -48,7 +50,12 @@ export class Request extends Message {
  * Content-Length: 0
  */
 export class RegisterRequest extends Request {
+    constructor(data){
+        super(data);
+        this.method = "REGISTER";
+    }
     send(transport:Transport){
+
         return new Promise((accept,reject)=>{
             super.send(transport);
             //transport.on('message')

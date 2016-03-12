@@ -11,7 +11,6 @@ import {Mime} from "sip/models/common/mime";
 import {Agent} from "sip/models/common/agent";
 import {Request} from "sip/models/message/request";
 import {SipClient} from "sip/sip";
-
 import  {createHash} from 'node/crypto';
 
 
@@ -52,7 +51,7 @@ const SIP_METHODS={
 
 var x=(new Request({
     method  : SIP_METHODS.REGISTER,
-    uri     : Parser.parse('sip:win.freedomdebtrelief.com',Uri,false),
+    uri     : Parser.parse('sip:win.freedomdebtrelief.com',Uri),
     version : new Version({
         minor: 0,
         major: 2
