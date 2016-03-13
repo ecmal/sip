@@ -251,20 +251,9 @@ class Methods{
 
      response=MD5(HA1:nonce:HA2)
     */
-    static digRes(
-        method:string,
-        username:string,
-        password:string,
-        realm:string,
-        nonce:string,
-        cnonce:string,
-        nc:string,
-        qop:string,
-        uri:string){
-
+    static digRes(method:string,username:string,password:string,realm:string,nonce:string,cnonce:string,nc:string,qop:string,uri:string){
         var HA1=this.toMD5(username+':'+realm+':'+password);
         var HA2=this.toMD5(method+':'+uri);
-
         return this.toMD5(HA1+':'+nonce+':'+nc+':'+cnonce+':'+qop+':'+HA2);
     }
 }

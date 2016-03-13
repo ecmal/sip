@@ -4,14 +4,22 @@ import {Parser} from "./parser";
 import {Socket} from "node/net";
 import * as NET from "node/net";
 import {Message} from "./models/message";
+import {Via} from "./models/common/via";
+import {Agent} from "./models/common/agent";
+import {Request} from "./models/message/request";
+import {Uri} from "./models/common/uri";
+import {Response} from "./models/message/response";
 
-const TRANSPORTS:{[k:string]:Transport} = Object.create(null);
+enum State {
+    CONNECTED,
+    CONNECTING,
+    DISCONNECTED
+}
 
 export class Transport extends Emitter {
 
-    static get(uri:string|Contact):Transport{
-        var contact = (uri instanceof Contact) ? uri : new Contact(uri);
-        return TRANSPORTS[contact.uri.server] || new Transport(contact);
+    static guid(){
+        return Math.round(Math.random()*0xFFFFFFFF).toString(16)
     }
 
     private static separator = new Buffer('\r\n\r\n');
@@ -34,53 +42,92 @@ export class Transport extends Emitter {
 
     private socket:Socket;
     private message:any;
-    private contact:Contact;
+
+    private via:Via;
+    private agent:Agent;
+    private uri:Uri;
+    private state:State;
+
+    public get isConnected():boolean{
+        return this.state == State.CONNECTED;
+    }
+    public get isConnecting():boolean{
+        return this.state == State.CONNECTING;
+    }
+    public get isDisconnected():boolean{
+        return this.state == State.DISCONNECTED;
+    }
 
     public get port(){
-        return this.contact.uri.port || 5060;
+        return this.uri.port || 5060;
     }
-
     public get host(){
-        return this.contact.uri.host || 'localhost';
+        return this.uri.host || 'localhost';
     }
 
-    constructor(contact:Contact){
+    constructor(uri:Uri|string){
         super();
-        this.contact = contact;
-        TRANSPORTS[contact.uri.server] = this;
+        this.state      = State.DISCONNECTED;
+        this.uri        = (uri instanceof Uri) ? uri : new Uri(<string>uri);
+        this.via        = new Via({
+            protocol    :'SIP',
+            version     :'2.0',
+            transport   :'TCP',
+            host        :null,
+            port        :null,
+            params      : {
+                branch  : `z9hG4bK.${Transport.guid()}`
+            }
+        });
+        this.agent      = new Agent({
+            name        :'WCB',
+            version     :"1.0.0"
+        });
+        this.doConnect();
     }
 
-    connect():Promise<Transport>{
-        return new Promise((accept,reject)=>{
+    private doConnect(){
+        if(this.isDisconnected){
+            this.state = State.CONNECTING;
             this.socket = NET.connect(this.port,this.host);
             this.socket.on('connect',(data)=>{
-                accept(this)
+                this.state = State.CONNECTED;
+                this.via.host = this.socket.localAddress;
+                this.via.port = this.socket.localPort;
+                this.emit('connect',this)
             });
             this.socket.on('error',(err)=>{
-                reject(err)
+                this.state = State.DISCONNECTED;
+                this.emit('error',err,this);
             });
-            var head = new Buffer(0),message=null;
+            this.socket.on('close',()=>{
+                this.state = State.DISCONNECTED;
+                this.emit('disconnect',this);
+            });
+            var head = new Buffer(0),message:Message=null;
             this.socket.on('data',(chunk)=>{
                 var sep,data:Buffer = Buffer.concat([head,chunk],head.length+chunk.length);
                 function messageDone(){
-                    return message.headers.contentLength==message.body.length;
+                    return message.contentLength==message.content.length;
                 }
                 function writeHead(header){
                     message = Parser.parse(header,Message);
                 }
                 function writeBody(chunk){
-                    var totalLength = message.headers.contentLength;
-                    if(!message.body){
-                        message.body = chunk.slice(0,totalLength);
-                        return chunk.slice(totalLength);
-                    }else{
-                        var bodyLength = message.body.length;
-                        var pendingLength = totalLength-bodyLength;
-                        var availableLength = Math.min(pendingLength,chunk.length);
-                        var newLength = bodyLength+availableLength;
-                        message.body = Buffer.concat([message.body,chunk.slice(0,availableLength)],newLength) ;
-                        return chunk.slice(availableLength);
+                    if(!message.content){
+                        message.content = new Buffer(0);
                     }
+                    if(typeof message.contentLength!="number"){
+                        console.info(message)
+                    }
+                    var totalLength = message.contentLength;
+                    var bodyLength = message.content.length;
+                    var pendingLength = totalLength-bodyLength;
+                    var availableLength = Math.min(pendingLength,chunk.length);
+                    var newLength = bodyLength+availableLength;
+                    message.content = Buffer.concat([message.content,chunk.slice(0,availableLength)],newLength) ;
+                    console.info("CHUNK",totalLength,bodyLength,pendingLength,availableLength,newLength,message.content.length,chunk.length);
+                    return chunk.slice(availableLength);
                 }
                 if(message){
                     data = writeBody(data);
@@ -96,22 +143,63 @@ export class Transport extends Emitter {
                 }
                 head = data;
             })
+        }
+    }
+
+    connect():Promise<Transport>{
+        return new Promise((accept,reject)=>{
+            if(this.isConnected){
+                accept(this)
+            }else{
+                this.once('connect',r=>accept(this));
+                this.once('error',e=>reject(e));
+                this.doConnect();
+            }
         });
     }
     
     onMessage(message){
-        console.info(message);
+        console.info("<< RECEIVED -----------------------");
+        console.info(message.toString());
         this.emit('message',message);
     }
     
 
-    send(text:string){
-        console.info(text);
-        this.socket.write(text);
-    }
+    send(message:Message){
+        message.agent = this.agent;
+        if(message.content){
+            message.contentLength = message.content.length;
+        }else{
+            message.contentLength = 0;
+        }
+        if(message instanceof Request){
+            message.via = this.via;
+            this.sendRequest(message)
+        }else
+        if(message instanceof Response){
+            this.sendResponse(message);
+        }
+        if(message.contentLength>0){
+            this.socket.write(message.content);
+        }
 
+    }
+    sendRequest(request:Request){
+        console.info(">> SENT ---------------------------");
+        console.info(request.toString());
+        this.sendText(request.toString());
+
+    }
+    sendResponse(response:Response){
+        console.info(">> SENT ---------------------------");
+        console.info(response.toString());
+        this.sendText(response.toString());
+    }
+    sendText(message:string){
+        this.socket.write(message);
+    }
     toString(options?:any){
-        return `Station(${this.contact.toString(options)})`;
+        return `Station(${this.uri.toString(options)})`;
     }
     inspect(){
         return this.toString({inspect:true})

@@ -8,6 +8,33 @@ export class Uri extends Model {
     port:number;
     params:any;
     headers:any;
+
+    set tag(v:string){
+        this.setParam('tag',v);
+    }
+    get tag():string{
+        return this.getParam('tag');
+    }
+    
+    setParam(name,value){
+        if(!this.params){
+            this.params = Object.create(null)
+        }
+        this.params[name]=value;
+    }
+    getParam(name):any{
+        if(this.params){
+            return this.params[name];
+        }
+    }
+
+    constructor(data?){
+        if(typeof data =='string'){
+            return <Uri>Uri.new(data)
+        }else{
+            super(data);
+        }
+    }
     get user():string{
         return `${this.username}@${this.server}`
     }
@@ -17,7 +44,7 @@ export class Uri extends Model {
     toString(options:any={}){
         var authority = (this.username ? this.username + ( (options.inspect&&this.password) ? ':'+this.password:'' ) +'@': '');
         var server = `${this.host}${this.port?':'+this.port:''}`;
-        var params = this.params?Object.keys(this.params).map(k=>`;${k}=${this.params[k]}`).join(''):'';
+        var params = this.params?Object.keys(this.params).map(k=>`;${k}${this.params[k]?'='+this.params[k]:''}`).join(''):'';
         var headers = this.headers?'?'+Object.keys(this.headers).map(k=>`${k}=${this.params[k]}`).join('&'):'';
         return `${this.scheme}:${authority}${server}${params}${headers}`;
     }

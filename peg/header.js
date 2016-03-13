@@ -48,6 +48,7 @@ function M(name,params){
         Class = options.Models[name];
     }else{
         Class = options.Models[name] = (function(){
+            console.info("WARNING : unknown model '"+name+"'");
             var model;
             eval('model = function '+name+'(data){Model.call(this,data)}');
             E(model,Model);

@@ -2,26 +2,12 @@ Message       = Request / Response
 
 Request
 = m:Method __ u:RequestUri __ v:SipVersion h:Headers
-{
-    var ClassName = 'Request';
-    switch(m){
-        case 'INVITE'    :ClassName='InviteRequest';break;
-        case 'ACK'       :ClassName='AckRequest';break;
-        case 'OPTIONS'   :ClassName='OptionsRequest';break;
-        case 'BYE'       :ClassName='ByeRequest';break;
-        case 'CANCEL'    :ClassName='CancelRequest';break;
-        case 'REGISTER'  :ClassName='RegisterRequest';break;
-        case 'SUBSCRIBE' :ClassName='SubscribeRequest';break;
-        case 'NOTIFY'    :ClassName='NotifyRequest';break;
-        case 'REFER'     :ClassName='ReferRequest';break;
-    }
-    return M(ClassName,{
-        method    : m,
-        uri       : u,
-        version   : v,
-        headers   : h
-    });
-}
+{return M('Request',{
+    method    : m,
+    uri       : u,
+    version   : v,
+    headers   : h
+})}
 
 Response
 = v:SipVersion __ c:Status_Code __ r:Reason_Phrase h:Headers
@@ -237,8 +223,7 @@ port            = port: (DIGIT ? DIGIT ? DIGIT ? DIGIT ? DIGIT ?) {return parseI
 UriParams    = p:uri_parameter* 
 {return pairsToObject(p)}
 
-uri_parameter     = ";" p:(transport_param / user_param / method_param
-                    / ttl_param / maddr_param / lr_param / other_param) 
+uri_parameter     = ";" p:(transport_param / user_param / method_param / ttl_param / maddr_param / lr_param / other_param)
 {return p}
 
 transport_param   = "transport="i t: ( "udp"i / "tcp"i / "sctp"i / "tls"i / other_transport)
@@ -261,10 +246,10 @@ maddr_param       = "maddr="i a: host
 { return ['maddr',t] }
 
 lr_param          = "lr"i p:("=" token)? 
-{ return ['lr',p?p[1]:true] }
+{ return ['lr',p?p[1]:null] }
 
 other_param       = p: pname v: ( "=" pvalue )? 
-{ return [p,v?v[1]:true] }
+{ return [p,v?v[1]:null] }
 
 pname             = $ paramchar +
 
@@ -575,15 +560,15 @@ Min_Expires  = min_expires: integer
 
 // PROXY-AUTHENTICATE
 
-Proxy_Authenticate  = proxy_authenticate: challenge
+Proxy_Authenticate  =  Challenge
 
-challenge           = digest_challenge / other_challenge
+Challenge           = digest_challenge / other_challenge
 
 digest_challenge    = "Digest"i LWS p:digest_clns
-{return {type:'Digest',params:p}}
+{return M('Challenge',{type:'Digest',params:p})}
 
 other_challenge     = s:auth_scheme LWS p:auth_params
-{return {type:s,params:p}}
+{return M('Challenge',{type:s,params:p})}
 
 auth_scheme         = token {return text()}
 auth_params         = f:auth_param r:(COMMA v:auth_param {return v})*
@@ -631,7 +616,7 @@ Route  = f:rec_route r:(COMMA v:rec_route {return v})*
 { return [f].concat(r)}
 
 rec_route     = a:name_addr p:( SEMI v:rr_param {return v})*
-{return {address:a,params:pairsToObject(p)}}
+{return M('Contact',a).set({params:pairsToObject(p)})}
 
 rr_param      = generic_param
 
@@ -769,7 +754,7 @@ ttl               = DIGIT DIGIT ? DIGIT ?
 
 
 // WWW-AUTHENTICATE
-WWW_Authenticate  = www_authenticate: challenge
+WWW_Authenticate  = Challenge
 
 
 // RFC 4028

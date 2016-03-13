@@ -1,70 +1,89 @@
 import {Emitter} from "./events";
 import {Transport} from "./transport";
-import {Parser} from "./parser";
 import {Contact} from "./models";
-import {RegisterRequest} from "./models";
-import {Uri} from "./models/common/uri";
+import {RegisterFlow} from "./station/registration";
+import {Message} from "./models/message";
+import {Response} from "./models/message/response";
+import {Request} from "./models/message/request";
+import {InviteFlow} from "./station/invitation";
+import {Util} from "./models/common/utils";
 
-const STATIONS:{[k:string]:Station} = Object.create(null);
+export enum State {
+    OFFLINE,
+    REGISTERING,
+    ONLINE,
+    CALLING,
+    TALKING,
+    RINGING
+}
 
 export class Station extends Emitter {
-    public static get all(){
-        return STATIONS;
-    }
-    public static get(uri:string|Contact):Station{
-        var contact = (uri instanceof Contact) ? uri : new Contact(uri);
-        var address   = `${contact.uri.user}`;
-        return STATIONS[address] || new Station(contact);
-    }
+    public state:State;
+    public transport:Transport;
+    public contact:Contact;
 
-    private transport:Transport;
-    private contact:Contact;
-   
-    private get id(){
-        return this.contact.uri.user
+    private registration:RegisterFlow;
+    private invitation:InviteFlow;
+
+    private get isOffline():boolean{
+        return this.state == State.OFFLINE;
     }
-    constructor(contact:Contact){
+    private get isRegistered():boolean{
+        return !(this.state==State.OFFLINE || this.state == State.REGISTERING);
+    }
+    private get id() {
+        return this.contact.uri.user;
+    }
+    constructor(contact:Contact|string, transport?:Transport) {
         super();
-        this.contact = contact;
-        STATIONS[this.id] = this;
+        this.state = State.OFFLINE;
+        this.onConnect = this.onConnect.bind(this);
+        this.onMessage = this.onMessage.bind(this);
+        this.setContact(contact);
+        this.setTransport(transport);
+        this.on('registering',r=>this.state = State.REGISTERING);
+        this.on('register',r=>this.state = State.ONLINE);
     }
-
-    public register(transport?:Transport):Promise<Station>{
-
-        this.transport = transport?transport:Transport.get(this.contact);
-        try {
-            var req=new RegisterRequest({
-                uri: new Uri({
-                    scheme :this.contact.uri.scheme,
-                    host   :this.contact.uri.host,
-                    port   :this.contact.uri.port
-                }),
-                headers     : {
-                    Via             :'SIP/2.0/TCP 192.168.10.103:37273',
-                    Contact         :this.contact,
-                    From            :this.contact,
-                    To              :this.contact,
-                    'Call-ID'       :'a1',
-                    CSeq            :'1 REGISTER',
-                    Expires         :'300',
-                    'User-Agent'    :'Test Agent',
-                    'Content-Length':'0'
-
-                }
-            }).toString();
-            this.transport.send(req);
-            this.transport.on('message',(message)=>{
-                 //console.info(message);
-            });
-
-        }catch(ex){console.info(ex)}
-        return Promise.resolve(this);
-        
+    public setContact(contact:Contact|string):Station{
+        if(contact instanceof Contact){
+            this.contact = contact;
+        }else{
+            this.contact = new Contact(contact);
+        }
+        this.contact.uri.tag = Util.md5(contact.toString()).substring(0,8);
+        return this;
     }
-    toString(options?:any){
+    public setTransport(transport:Transport):Station {
+        if(!this.transport){
+            this.transport = <Transport>transport;
+            this.registration = new RegisterFlow(this);
+            this.invitation = new InviteFlow(this);
+            this.transport.on('connect',this.onConnect);
+            this.transport.on('message',this.onMessage);
+            if(this.transport.isConnected){
+                this.emit('connect');
+            }
+        }
+        return this;
+    }
+    public toString(options?:any) {
         return `Station(${this.contact.toString(options)})`;
     }
-    inspect(){
-        return this.toString({inspect:true})
+
+    private inspect() {
+        return this.toString({inspect: true})
+    }
+    private onConnect(){
+        this.emit('connect');
+    }
+    private onMessage(message:Message){
+        if(message.to.uri.host==this.contact.uri.host && message.to.uri.username==this.contact.uri.username){
+            if(message instanceof Response){
+                this.emit('response',message);
+            }else
+            if(message instanceof Request){
+                this.emit('request',message);
+            }
+        }
     }
 }

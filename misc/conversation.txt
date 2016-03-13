@@ -1,0 +1,499 @@
+===============================================================================================================[SENT]>==
+REGISTER sip:win.freedomdebtrelief.com SIP/2.0
+------------------------------------------------------------------------------------------------------------------------
+    Via                 : SIP/2.0/UDP 192.168.10.105:53164;branch=z9hG4bK926678145
+    From                : <sip:213@win.freedomdebtrelief.com>;tag=1760672048
+    To                  : <sip:213@win.freedomdebtrelief.com>
+    Call-ID             : 1191082682
+    CSeq                : 1 REGISTER
+    Contact             : <sip:213@192.168.10.105:53164;line=c71fbb316fc65eb>
+    Allow               : INVITE, ACK, CANCEL,  BYE, REFER, NOTIFY, MESSAGE, SUBSCRIBE, INFO
+    Max-Forwards        : 70
+    User-Agent          : iSoftPhone Pro 4.0122
+    Expires             : 1800
+    Supported           : 100rel
+    Supported           : path
+    Content-Length      : 0
+===========================================================================================================<[RECEIVED]==
+SIP/2.0 401 Unauthorized
+------------------------------------------------------------------------------------------------------------------------
+    Via                 : SIP/2.0/UDP 192.168.10.105:53164;branch=z9hG4bK926678145
+    From                : <sip:213@win.freedomdebtrelief.com>;tag=1760672048
+    To                  : <sip:213@win.freedomdebtrelief.com>;tag=eceb94c56e3b48ac83aa2fde89c710dc
+    Call-ID             : 1191082682
+    CSeq                : 1 REGISTER
+    x-Error-Details     : No auth header
+    WWW-Authenticate    : Digest
+                          realm="win.freedomdebtrelief.com",nonce="06829fdc07f8501e6985d2a30a01bfc9",qop="auth",
+                          algorithm=MD5,stale=false,opaque="00000387"
+    Content-Length      : 0
+===============================================================================================================[SENT]>==
+REGISTER sip:win.freedomdebtrelief.com SIP/2.0
+------------------------------------------------------------------------------------------------------------------------
+    Via                 : SIP/2.0/UDP 192.168.10.105:53164;branch=z9hG4bK818159360
+    From                : <sip:213@win.freedomdebtrelief.com>;tag=1760672048
+    To                  : <sip:213@win.freedomdebtrelief.com>
+    Call-ID             : 1191082682
+    CSeq                : 2 REGISTER
+    Contact             : <sip:213@192.168.10.105:53164;line=c71fbb316fc65eb>
+    Authorization       : Digest
+                          username="213", realm="win.freedomdebtrelief.com", nonce="06829fdc07f8501e6985d2a30a01bfc9",
+                          uri="sip:win.freedomdebtrelief.com", response="5e32a2a2fd7d9ff4638e87577662c3c9",
+                          algorithm=MD5, cnonce="0a4f113b", opaque="00000387", qop=auth, nc=00000001
+    Allow               : INVITE, ACK, CANCEL,  BYE, REFER, NOTIFY, MESSAGE, SUBSCRIBE, INFO
+    Max-Forwards        : 70
+    User-Agent          : iSoftPhone Pro 4.0122
+    Expires             : 1800
+    Supported           : 100rel
+    Supported           : path
+    Content-Length      : 0
+===========================================================================================================<[RECEIVED]==
+SIP/2.0 200 OK
+------------------------------------------------------------------------------------------------------------------------
+    Via                 : SIP/2.0/UDP 192.168.10.105:53164;branch=z9hG4bK818159360
+    From                : <sip:213@win.freedomdebtrelief.com>;tag=1760672048
+    To                  : <sip:213@win.freedomdebtrelief.com>;tag=c4736f7532444b1688dbd9e863cca623
+    Call-ID             : 1191082682
+    CSeq                : 2 REGISTER
+    Contact             : <sip:213@192.168.10.105:53164;line=c71fbb316fc65eb>;expires=1800
+    Expires             : 1800
+    Content-Length      : 0
+===============================================================================================================[SENT]>==
+SUBSCRIBE sip:213@win.freedomdebtrelief.com SIP/2.0
+------------------------------------------------------------------------------------------------------------------------
+    Via                 : SIP/2.0/UDP 192.168.10.105:53164;branch=z9hG4bK76722078
+    From                : <sip:213@win.freedomdebtrelief.com>;tag=418613346
+    To                  : <sip:213@win.freedomdebtrelief.com>
+    Call-ID             : 1383784217
+    CSeq                : 20 SUBSCRIBE
+    Contact             : <sip:213@192.168.10.105:53164>
+    Max-Forwards        : 70
+    User-Agent          : iSoftPhone Pro 4.0122
+    Expires             : 300
+    Event               : message-summary
+    Content-Length      : 0
+===========================================================================================================<[RECEIVED]==
+SIP/2.0 501 Not Implemented
+------------------------------------------------------------------------------------------------------------------------
+    Via                 : SIP/2.0/UDP 192.168.10.105:53164;branch=z9hG4bK76722078
+    From                : <sip:213@win.freedomdebtrelief.com>;tag=418613346
+    To                  : <sip:213@win.freedomdebtrelief.com>;tag=2aa0abf838904282ae4c513a2291e331
+    Call-ID             : 1383784217
+    CSeq                : 20 SUBSCRIBE
+    Content-Length      : 0
+===========================================================================================================<[RECEIVED]==
+INVITE sip:213@192.168.10.105:53164;line=c71fbb316fc65eb SIP/2.0
+------------------------------------------------------------------------------------------------------------------------
+    Via                 : SIP/2.0/UDP 192.168.10.200:5060;branch=z9hG4bK0200005a
+    Record-Route        : <sip:192.168.10.200:5060;lr>
+    Via                 : SIP/2.0/UDP 192.168.10.105:58322;rport;branch=z9hG4bKPj59lkbGRBxH8PPLRG2qzZAEWZpALS67Wg
+    Max-Forwards        : 69
+    From                : "Something" <sip:214@win.freedomdebtrelief.com>;tag=5QWVciBHTnMxnOAXvfiPma2aTgIgCUe0
+    To                  : <sip:213@win.freedomdebtrelief.com>
+    Contact             : <sip:214@192.168.10.200:5060;transport=udp>
+    Call-ID             : W0PahaJJAJFpzNteXC6yOXjTwZB7R8R9
+    CSeq                : 31817 INVITE
+    Allow               : PRACK, INVITE, ACK, BYE, CANCEL, UPDATE, INFO, SUBSCRIBE, NOTIFY, REFER, MESSAGE, OPTIONS
+    Supported           : replaces, 100rel, timer, norefersub
+    Session-Expires     : 1800
+    Min-SE              : 90
+    User-Agent          : Telephone 1.1.4
+    Content-Type        : application/sdp
+    Content-Length      : 488
+------------------------------------------------------------------------------------------------------------------------
+    v=0
+    o=- 3666883549 3666883549 IN IP4 192.168.10.105
+    s=pjmedia
+    b=AS:84
+    t=0 0
+    a=X-nat:0
+    m=audio 4002 RTP/AVP 103 102 104 109 3 0 8 9 101
+    c=IN Ino transaction for message
+===============================================================================================================[SENT]>==
+SIP/2.0 100 Trying
+------------------------------------------------------------------------------------------------------------------------
+    Via                 : SIP/2.0/UDP 192.168.10.200:5060;branch=z9hG4bK0200005a
+    Via                 : SIP/2.0/UDP 192.168.10.105:58322;rport;branch=z9hG4bKPj59lkbGRBxH8PPLRG2qzZAEWZpALS67Wg
+    From                : "Something" <sip:214@win.freedomdebtrelief.com>;tag=5QWVciBHTnMxnOAXvfiPma2aTgIgCUe0
+    To                  : <sip:213@win.freedomdebtrelief.com>
+    Call-ID             : W0PahaJJAJFpzNteXC6yOXjTwZB7R8R9
+    CSeq                : 31817 INVITE
+    User-Agent          : iSoftPhone Pro 4.0122
+    Content-Length      : 0
+===============================================================================================================[SENT]>==
+SIP/2.0 180 Ringing
+------------------------------------------------------------------------------------------------------------------------
+    Via                 : SIP/2.0/UDP 192.168.10.200:5060;branch=z9hG4bK0200005a
+    Via                 : SIP/2.0/UDP 192.168.10.105:58322;rport;branch=z9hG4bKPj59lkbGRBxH8PPLRG2qzZAEWZpALS67Wg
+    Record-Route        : <sip:192.168.10.200:5060;lr>
+    From                : "Something" <sip:214@win.freedomdebtrelief.com>;tag=5QWVciBHTnMxnOAXvfiPma2aTgIgCUe0
+    To                  : <sip:213@win.freedomdebtrelief.com>;tag=431199210
+    Call-ID             : W0PahaJJAJFpzNteXC6yOXjTwZB7R8R9
+    CSeq                : 31817 INVITE
+    Contact             : <sip:213@192.168.10.105:53164>
+    User-Agent          : iSoftPhone Pro 4.0122
+    Allow-Events        : talk
+    Content-Length      : 0
+===============================================================================================================[SENT]>==
+SIP/2.0 200 OK
+------------------------------------------------------------------------------------------------------------------------
+    Via                 : SIP/2.0/UDP 192.168.10.200:5060;branch=z9hG4bK0200005a
+    Via                 : SIP/2.0/UDP 192.168.10.105:58322;rport;branch=z9hG4bKPj59lkbGRBxH8PPLRG2qzZAEWZpALS67Wg
+    Record-Route        : <sip:192.168.10.200:5060;lr>
+    From                : "Something" <sip:214@win.freedomdebtrelief.com>;tag=5QWVciBHTnMxnOAXvfiPma2aTgIgCUe0
+    To                  : <sip:213@win.freedomdebtrelief.com>;tag=431199210
+    Call-ID             : W0PahaJJAJFpzNteXC6yOXjTwZB7R8R9
+    CSeq                : 31817 INVITE
+    Contact             : <sip:213@192.168.10.105:53164>
+    Content-Type        : application/sdp
+    User-Agent          : iSoftPhone Pro 4.0122
+    Content-Length      : 297
+------------------------------------------------------------------------------------------------------------------------
+    v=0
+    o=iSoftPhone 1457894763 1457894764 IN IP4 192.168.10.105
+    s=conversation
+    c=IN IP4 192.168.10.105
+    t=0 0
+    m=audio 11888 RTP/AVP 3 0 8 9 101
+    a=rtpmap:0 PCMU/8000
+    a=rtpmap:8 PCMA/8000
+    a=rtpmap:3 GSM/8000
+    a=rtpmap:9 G722/8000
+    a=rtpmap:101 telephone-event/8000
+    a=fmtp:101 0-16
+    a=sendrecv
+===========================================================================================================<[RECEIVED]==
+ACK sip:213@192.168.10.105:53164;line=c71fbb316fc65eb SIP/2.0
+------------------------------------------------------------------------------------------------------------------------
+    Via             : SIP/2.0/UDP 192.168.10.200:5060;branch=z9hG4bK040000d5
+    Record-Route    : <sip:192.168.10.200:5060;lr>
+    Via             : SIP/2.0/UDP 192.168.10.105:58322;rport;branch=z9hG4bKPjAHW3p3BP89NMejCN0kb3dOdLNjvQr17v
+    Max-Forwards    : 69
+    From            : "Something" <sip:214@win.freedomdebtrelief.com>;tag=5QWVciBHTnMxnOAXvfiPma2aTgIgCUe0
+    To              : <sip:213@win.freedomdebtrelief.com>;tag=431199210
+    Call-ID         : W0PahaJJAJFpzNteXC6yOXjTwZB7R8R9
+    CSeq            : 31817 ACK
+    Route           : <sip:192.168.10.200:5060;lr>
+    Content-Length  : 0
+===========================================================================================================<[RECEIVED]==
+INVITE sip:213@192.168.10.105:53164;line=c71fbb316fc65eb SIP/2.0
+------------------------------------------------------------------------------------------------------------------------
+    Via             : SIP/2.0/UDP 192.168.10.200:5060;branch=z9hG4bK0200005b
+    Record-Route    : <sip:192.168.10.200:5060;lr>
+    Via             : SIP/2.0/UDP 192.168.10.105:58322;rport;branch=z9hG4bKPjNwgtSMTllOJM5ADZGeHs8zuRo8gJQd-.
+    Max-Forwards    : 69
+    From            : "Something" <sip:214@win.freedomdebtrelief.com>;tag=5QWVciBHTnMxnOAXvfiPma2aTgIgCUe0
+    To              : <sip:213@win.freedomdebtrelief.com>;tag=431199210
+    Contact         : <sip:214@192.168.10.200:5060;transport=udp>
+    Call-ID         : W0PahaJJAJFpzNteXC6yOXjTwZB7R8R9
+    CSeq            : 31819 INVITE
+    Route           : <sip:192.168.10.200:5060;lr>
+    Allow           : PRACK, INVITE, ACK, BYE, CANCEL, UPDATE, INFO, SUBSCRIBE, NOTIFY, REFER, MESSAGE, OPTIONS
+    Supported       : replaces, 100rel, timer, norefersub
+    Session-Expires : 1800
+    Min-SE          : 90
+    Content-Type    : application/sdp
+    Content-Length  : 279
+------------------------------------------------------------------------------------------------------------------------
+    v=0
+    o=- 3666883549 3666883550 IN IP4 192.168.10.105
+    s=pjmedia
+    b=AS:84
+    t=0 0
+    a=X-nat:0
+    m=audio 4002 RTP/AVP 3 101
+    c=IN Ino transaction for message
+===============================================================================================================[SENT]>==
+SIP/2.0 100 Trying
+------------------------------------------------------------------------------------------------------------------------
+    Via             : SIP/2.0/UDP 192.168.10.200:5060;branch=z9hG4bK0200005b
+    Via             : SIP/2.0/UDP 192.168.10.105:58322;rport;branch=z9hG4bKPjNwgtSMTllOJM5ADZGeHs8zuRo8gJQd-.
+    From            : "Something" <sip:214@win.freedomdebtrelief.com>;tag=5QWVciBHTnMxnOAXvfiPma2aTgIgCUe0
+    To              : <sip:213@win.freedomdebtrelief.com>;tag=431199210
+    Call-ID         : W0PahaJJAJFpzNteXC6yOXjTwZB7R8R9
+    CSeq            : 31819 INVITE
+    User-Agent      : iSoftPhone Pro 4.0122
+    Content-Length  : 0
+
+===============================================================================================================[SENT]>==
+SIP/2.0 200 OK
+------------------------------------------------------------------------------------------------------------------------
+    Via             : SIP/2.0/UDP 192.168.10.200:5060;branch=z9hG4bK0200005b
+    Via             : SIP/2.0/UDP 192.168.10.105:58322;rport;branch=z9hG4bKPjNwgtSMTllOJM5ADZGeHs8zuRo8gJQd-.
+    Record-Route    : <sip:192.168.10.200:5060;lr>
+    From            : "Something" <sip:214@win.freedomdebtrelief.com>;tag=5QWVciBHTnMxnOAXvfiPma2aTgIgCUe0
+    To              : <sip:213@win.freedomdebtrelief.com>;tag=431199210
+    Call-ID         : W0PahaJJAJFpzNteXC6yOXjTwZB7R8R9
+    CSeq            : 31819 INVITE
+    Contact         : <sip:213@192.168.10.105:53164>
+    Content-Type    : application/sdp
+    User-Agent      : iSoftPhone Pro 4.0122
+    Content-Length  : 225
+------------------------------------------------------------------------------------------------------------------------
+    v=0
+    o=iSoftPhone 1457894763 1457894764 IN IP4 192.168.10.105
+    s=conversation
+    c=IN IP4 192.168.10.105
+    t=0 0
+    m=audio 11888 RTP/AVP 3 101
+    a=rtpmap:3 GSM/8000
+    a=rtpmap:101 telephone-event/8000
+    a=fmtp:101 0-16
+    a=sendrecv
+===========================================================================================================<[RECEIVED]==
+ACK sip:213@192.168.10.105:53164;line=c71fbb316fc65eb SIP/2.0
+------------------------------------------------------------------------------------------------------------------------
+    Via                 : SIP/2.0/UDP 192.168.10.200:5060;branch=z9hG4bK040000d6
+    Record-Route        : <sip:192.168.10.200:5060;lr>
+    Via                 : SIP/2.0/UDP 192.168.10.105:58322;rport;branch=z9hG4bKPjBn6Lrw9R3YGFzRMNDc9msMhSZ3DyFA9W
+    Max-Forwards        : 69
+    From                : "Something" <sip:214@win.freedomdebtrelief.com>;tag=5QWVciBHTnMxnOAXvfiPma2aTgIgCUe0
+    To                  : <sip:213@win.freedomdebtrelief.com>;tag=431199210
+    Call-ID             : W0PahaJJAJFpzNteXC6yOXjTwZB7R8R9
+    CSeq                : 31819 ACK
+    Route               : <sip:192.168.10.200:5060;lr>
+    Content-Length      : 0
+===============================================================================================================[SENT]>==
+BYE sip:214@192.168.10.200:5060;transport=udp SIP/2.0
+------------------------------------------------------------------------------------------------------------------------
+    Via                 : SIP/2.0/UDP 192.168.10.105:53164;branch=z9hG4bK1389933604
+    Route               : <sip:192.168.10.200:5060;lr>
+    From                : <sip:213@win.freedomdebtrelief.com>;tag=431199210
+    To                  : "Something" <sip:214@win.freedomdebtrelief.com>;tag=5QWVciBHTnMxnOAXvfiPma2aTgIgCUe0
+    Call-ID             : W0PahaJJAJFpzNteXC6yOXjTwZB7R8R9
+    CSeq                : 2 BYE
+    Contact             : <sip:213@192.168.10.105:53164>
+    Max-Forwards        : 70
+    User-Agent          : iSoftPhone Pro 4.0122
+    Content-Length      : 0
+===========================================================================================================<[RECEIVED]==
+SIP/2.0 401 Unauthorized
+------------------------------------------------------------------------------------------------------------------------
+    Via                 : SIP/2.0/UDP 192.168.10.105:53164;branch=z9hG4bK1389933604
+    From                : <sip:213@win.freedomdebtrelief.com>;tag=431199210
+    To                  : "Something" <sip:214@win.freedomdebtrelief.com>;tag=5QWVciBHTnMxnOAXvfiPma2aTgIgCUe0
+    Call-ID             : W0PahaJJAJFpzNteXC6yOXjTwZB7R8R9
+    CSeq                : 2 BYE
+    x-Error-Details     : No auth header
+    WWW-Authenticate    : Digest
+                          realm="win.freedomdebtrelief.com",nonce="3a9ca310ad3588abd1ff459d24a8cc82", qop="auth",
+                          algorithm=MD5,stale=false,opaque="0000038b"
+    Content-Length      : 0
+===============================================================================================================[SENT]>==
+BYE sip:214@192.168.10.200:5060;transport=udp SIP/2.0
+------------------------------------------------------------------------------------------------------------------------
+    Via                 : SIP/2.0/UDP 192.168.10.105:53164;branch=z9hG4bK2136883448
+    Route               : <sip:192.168.10.200:5060;lr>
+    From                : <sip:213@win.freedomdebtrelief.com>;tag=431199210
+    To                  : "Something" <sip:214@win.freedomdebtrelief.com>;tag=5QWVciBHTnMxnOAXvfiPma2aTgIgCUe0
+    Call-ID             : W0PahaJJAJFpzNteXC6yOXjTwZB7R8R9
+    CSeq                : 3 BYE
+    Contact             : <sip:213@192.168.10.105:53164>
+    Authorization       : Digest
+                          username="213", realm="win.freedomdebtrelief.com", nonce="3a9ca310ad3588abd1ff459d24a8cc82",
+                          uri="sip:214@192.168.10.200:5060;transport=udp", response="eb56744e48d7c0f2cccd7ac3c692fa29",
+                          algorithm=MD5, cnonce="0a4f113b", opaque="0000038b", qop=auth, nc=00000001
+    Max-Forwards        : 70
+    User-Agent          : iSoftPhone Pro 4.0122
+    Content-Length      : 0
+===========================================================================================================<[RECEIVED]==
+SIP/2.0 200 OK
+------------------------------------------------------------------------------------------------------------------------
+    Via                 : SIP/2.0/UDP 192.168.10.105:53164;branch=z9hG4bK2136883448
+    Record-Route        : <sip:192.168.10.200:5060;lr>
+    Call-ID             : W0PahaJJAJFpzNteXC6yOXjTwZB7R8R9
+    From                : <sip:213@win.freedomdebtrelief.com>;tag=431199210
+    To                  : "Something" <sip:214@win.freedomdebtrelief.com>;tag=5QWVciBHTnMxnOAXvfiPma2aTgIgCUe0
+    CSeq                : 3 BYE
+    Content-Length      : 0
+------------------------------------------------------------------------------------------------------------------------
+
+========================================================================================================================
+========================================================================================================================
+
+===============================================================================================================[SENT]>==
+INVITE sip:214@win.freedomdebtrelief.com SIP/2.0
+------------------------------------------------------------------------------------------------------------------------
+    Via                 : SIP/2.0/UDP 192.168.10.105:53164;branch=z9hG4bK954602868
+    From                : <sip:213@win.freedomdebtrelief.com>;tag=1581751677
+    To                  : <sip:214@win.freedomdebtrelief.com>
+    Call-ID             : 1012203580
+    CSeq                : 20 INVITE
+    Contact             : <sip:213@192.168.10.105:53164>
+    Content-Type        : application/sdp
+    Max-Forwards        : 70
+    User-Agent          : iSoftPhone Pro 4.0122
+    Allow-Events        : talk
+    Supported           : replaces
+    Content-Length      : 391
+------------------------------------------------------------------------------------------------------------------------
+    v=0
+    o=iSoftPhone 1457898700 1 IN IP4 192.168.10.105
+    s=conversation
+    c=IN IP4 192.168.10.105
+    t=0 0
+    m=audio 11728 RTP/AVP 0 8 3 97 98 9 18 101
+    a=rtpmap:0 PCMU/8000
+    a=rtpmap:8 PCMA/8000
+    a=rtpmap:3 GSM/8000
+    a=rtpmap:97 G726-32/8000
+    a=rtpmap:98 iLBC/8000
+    a=rptmap:9 G722/8000
+    a=rtpmap:18 G729/8000
+    a=fmtp:18 annexb=yes
+    a=rtpmap:101 telephone-event/8000
+    a=fmtp:101 0-16
+    a=sendrecv
+===========================================================================================================<[RECEIVED]==
+SIP/2.0 401 Unauthorized
+------------------------------------------------------------------------------------------------------------------------
+    Via                 : SIP/2.0/UDP 192.168.10.105:53164;branch=z9hG4bK954602868
+    From                : <sip:213@win.freedomdebtrelief.com>;tag=1581751677
+    To                  : <sip:214@win.freedomdebtrelief.com>;tag=5cd0d0b16fbe4ad4b5517874da41d056
+    Call-ID             : 1012203580
+    CSeq                : 20 INVITE
+    x-Error-Details     : No auth header
+    WWW-Authenticate    : Digest
+                          realm="win.freedomdebtrelief.com",nonce="c096211f19e32f84fd9d5e514616f27f",qop="auth",
+                          algorithm=MD5,stale=false,opaque="0000039a"
+    Content-Length      : 0
+===============================================================================================================[SENT]>==
+ACK sip:214@win.freedomdebtrelief.com SIP/2.0
+------------------------------------------------------------------------------------------------------------------------
+    Via                 : SIP/2.0/UDP 192.168.10.105:53164;branch=z9hG4bK954602868
+    From                : <sip:213@win.freedomdebtrelief.com>;tag=1581751677
+    To                  : <sip:214@win.freedomdebtrelief.com>;tag=5cd0d0b16fbe4ad4b5517874da41d056
+    Call-ID             : 1012203580
+    CSeq                : 20 ACK
+    Content-Length      : 0
+===============================================================================================================[SENT]>==
+INVITE sip:214@win.freedomdebtrelief.com SIP/2.0
+------------------------------------------------------------------------------------------------------------------------
+    Via                 : SIP/2.0/UDP 192.168.10.105:53164;branch=z9hG4bK1955530683
+    From                : <sip:213@win.freedomdebtrelief.com>;tag=1581751677
+    To                  : <sip:214@win.freedomdebtrelief.com>
+    Call-ID             : 1012203580
+    CSeq                : 21 INVITE
+    Contact             : <sip:213@192.168.10.105:53164>
+    Authorization       : Digest
+                          username="213", realm="win.freedomdebtrelief.com", nonce="c096211f19e32f84fd9d5e514616f27f",
+                          uri="sip:214@win.freedomdebtrelief.com", response="0cd4c09ad0cdccb50b47e615cf5afe7f",
+                          algorithm=MD5, cnonce="0a4f113b", opaque="0000039a", qop=auth, nc=00000001
+    Content-Type        : application/sdp
+    Max-Forwards        : 70
+    User-Agent          : iSoftPhone Pro 4.0122
+    Allow-Events        : talk
+    Supported           : replaces
+    Content-Length      : 391
+------------------------------------------------------------------------------------------------------------------------
+    v=0
+    o=iSoftPhone 1457898700 1 IN IP4 192.168.10.105
+    s=conversation
+    c=IN IP4 192.168.10.105
+    t=0 0
+    m=audio 11728 RTP/AVP 0 8 3 97 98 9 18 101
+    a=rtpmap:0 PCMU/8000
+    a=rtpmap:8 PCMA/8000
+    a=rtpmap:3 GSM/8000
+    a=rtpmap:97 G726-32/8000
+    Message received from: 192.168.10.200:5060
+    Received message len=244 from 192.168.10.200:5060:
+    SIP/2.0 100 Trying
+    Via: SIP/2.0/UDP 192.168.10.105:53164;branch=z9hG4bK1955530683
+    From:  <sip:213@win.freedomdebtrelief.com>;tag=1581751677
+    To:  <sip:214@win.freedomdebtrelief.com>
+    Call-ID: 1012203580
+    CSeq: 21 INVITE
+    Content-Length: 0
+===========================================================================================================<[RECEIVED]==
+SIP/2.0 100 Trying
+------------------------------------------------------------------------------------------------------------------------
+    Via                 : SIP/2.0/UDP 192.168.10.105:53164;branch=z9hG4bK1955530683
+    Record-Route        : <sip:192.168.10.200:5060;lr>
+    Call-ID             : 1012203580
+    From                : <sip:213@win.freedomdebtrelief.com>;tag=1581751677
+    To                  : <sip:214@win.freedomdebtrelief.com>
+    CSeq                : 21 INVITE
+    Content-Length      : 0
+===========================================================================================================<[RECEIVED]==
+SIP/2.0 180 Ringing
+------------------------------------------------------------------------------------------------------------------------
+    Via                 : SIP/2.0/UDP 192.168.10.105:53164;branch=z9hG4bK1955530683
+    Record-Route        : <sip:192.168.10.200:5060;lr>
+    Call-ID             : 1012203580
+    From                : <sip:213@win.freedomdebtrelief.com>;tag=1581751677
+    To                  : <sip:214@win.freedomdebtrelief.com>;tag=lyuF.eWfXRPCW-6Jxoh.nt2Ywk4YlUPo
+    CSeq                : 21 INVITE
+    Contact             : <sip:214@192.168.10.200:5060;transport=udp>
+    Allow               : PRACK, INVITE, ACK, BYE, CANCEL, UPDATE, INFO, SUBSCRIBE, NOTIFY, REFER, MESSAGE, OPTIONS
+    Content-Length      : 0
+===========================================================================================================<[RECEIVED]==
+SIP/2.0 200 OK
+------------------------------------------------------------------------------------------------------------------------
+    Via                 : SIP/2.0/UDP 192.168.10.105:53164;branch=z9hG4bK1955530683
+    Record-Route        : <sip:192.168.10.200:5060;lr>
+    Call-ID             : 1012203580
+    From                : <sip:213@win.freedomdebtrelief.com>;tag=1581751677
+    To                  : <sip:214@win.freedomdebtrelief.com>;tag=lyuF.eWfXRPCW-6Jxoh.nt2Ywk4YlUPo
+    CSeq                : 21 INVITE
+    Allow               : PRACK, INVITE, ACK, BYE, CANCEL, UPDATE, INFO, SUBSCRIBE, NOTIFY, REFER, MESSAGE, OPTIONS
+    Contact             : <sip:214@192.168.10.200:5060;transport=udp>
+    Supported           : replaces, 100rel, timer, norefersub
+    Content-Type        : application/sdp
+    Content-Length      : 280
+------------------------------------------------------------------------------------------------------------------------
+    v=0
+    o=- 3666887500 3666887501 IN IP4 192.168.10.105
+    s=pjmedia
+    b=AS:84
+    t=0 0
+    a=X-nat:0
+    m=audio 4006 RTP/AVP 0 101
+    c=IN IP4 192.168.10.105
+    b=TIAS:64000
+    a=rtcp:4007 IN IP4 192.168.10.105
+    a=sendrecv
+    a=rtpmap:0 PCMU/8000
+    a=rtpmap:101 telephone-event/8000
+    a=fmtp:101 0-15
+===============================================================================================================[SENT]>==
+ACK sip:214@192.168.10.200:5060;transport=udp SIP/2.0
+------------------------------------------------------------------------------------------------------------------------
+    Via                 : SIP/2.0/UDP 192.168.10.105:53164;branch=z9hG4bK1302951860
+    Route               : <sip:192.168.10.200:5060;lr>
+    From                : <sip:213@win.freedomdebtrelief.com>;tag=1581751677
+    To                  : <sip:214@win.freedomdebtrelief.com>;tag=lyuF.eWfXRPCW-6Jxoh.nt2Ywk4YlUPo
+    Call-ID             : 1012203580
+    CSeq                : 21 ACK
+    Contact             : <sip:213@192.168.10.105:53164>
+    Max-Forwards        : 70
+    User-Agent          : iSoftPhone Pro 4.0122
+    Content-Length      : 0
+===============================================================================================================[SENT]>==
+BYE sip:214@192.168.10.200:5060;transport=udp SIP/2.0
+------------------------------------------------------------------------------------------------------------------------
+    Via                 : SIP/2.0/UDP 192.168.10.105:53164;branch=z9hG4bK2011076414
+    Route               : <sip:192.168.10.200:5060;lr>
+    From                : <sip:213@win.freedomdebtrelief.com>;tag=1581751677
+    To                  : <sip:214@win.freedomdebtrelief.com>;tag=lyuF.eWfXRPCW-6Jxoh.nt2Ywk4YlUPo
+    Call-ID             : 1012203580
+    CSeq                : 22 BYE
+    Contact             : <sip:213@192.168.10.105:53164>
+    Authorization       : Digest
+                          username="213", realm="win.freedomdebtrelief.com", nonce="c096211f19e32f84fd9d5e514616f27f",
+                          uri="sip:214@192.168.10.200:5060;transport=udp", response="d1df73e3f3a27fa2add6dfd130a030f0",
+                          algorithm=MD5, cnonce="0a4f113b", opaque="0000039a", qop=auth, nc=00000002
+    Max-Forwards        : 70
+    User-Agent          : iSoftPhone Pro 4.0122
+    Content-Length      : 0
+===========================================================================================================<[RECEIVED]==
+SIP/2.0 200 OK
+------------------------------------------------------------------------------------------------------------------------
+    Via                 : SIP/2.0/UDP 192.168.10.105:53164;branch=z9hG4bK2011076414
+    Record-Route        : <sip:192.168.10.200:5060;lr>
+    Call-ID             : 1012203580
+    From                : <sip:213@win.freedomdebtrelief.com>;tag=1581751677
+    To                  : <sip:214@win.freedomdebtrelief.com>;tag=lyuF.eWfXRPCW-6Jxoh.nt2Ywk4YlUPo
+    CSeq                : 22 BYE
+    Content-Length      : 0
+------------------------------------------------------------------------------------------------------------------------
