@@ -69,7 +69,7 @@ export class Call extends Emitter {
 
 export class InviteFlow {
 
-    private call:Call;
+    public call:Call;
     private media:InviteMedia;
     private station:Station;
     private request:Request;

@@ -35,14 +35,8 @@ class Agent extends Station {
     }
     onInvite(call){
         console.info(`Agent ${this.contact.name} Invited by ${call.from.name} to call ${call.id}`);
-        setTimeout(()=>{
-            call.take();
-            this.once('call',this.onCall);
-            this.once('bye',this.onBye);
-            setTimeout(()=>{
-                call.drop()
-            },10000)
-        },10000);
+        this.once('call',this.onCall);
+        this.once('bye',this.onBye);
     }
     onCall(call){
         console.info(`Agent ${this.contact.name} start talking to ${call.from.name} on call ${call.id}`);
@@ -50,6 +44,15 @@ class Agent extends Station {
 
     onBye(call){
         console.info(`Agent ${this.contact.name} end talking to ${call.from.name} on call ${call.id}`);
+    }
+    call(extension){
+        this.invitation.sendInvite(new Contact(`sip:${extension}@win.freedomdebtrelief.com`));
+    }
+    drop(){
+        this.invitation.call.drop();
+    }
+    take(){
+        this.invitation.call.take();
     }
 }
 
@@ -96,12 +99,30 @@ class Client extends Station {
     onBye(call){
         console.info(`Agent ${this.contact.name} end talking to ${call.from.name} on call ${call.id}`);
     }
+    call(extension){
+        this.invitation.sendInvite(new Contact(`sip:${extension}@win.freedomdebtrelief.com`));
+    }
+    drop(){
+        this.invitation.call.drop();
+    }
+    take(){
+        this.invitation.call.take();
+    }
 }
 
+System['Stations'] = Object.create(null);
 
 Agent.start([
     ["101","101"]
-]);
+]).forEach(a=>{
+    System['Stations']['A'+a.contact.uri.username]=a;
+});
 Client.start([
     ["201","201"]
-]);
+]).forEach(a=>{
+    System['Stations']['C'+a.contact.uri.username]=a;
+});
+
+
+
+
