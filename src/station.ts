@@ -22,8 +22,8 @@ export class Station extends Emitter {
     public transport:Transport;
     public contact:Contact;
 
-    private registration:RegisterFlow;
-    private invitation:InviteFlow;
+    public registration:RegisterFlow;
+    public invitation:InviteFlow;
 
     private get isOffline():boolean{
         return this.state == State.OFFLINE;
@@ -50,7 +50,7 @@ export class Station extends Emitter {
         }else{
             this.contact = new Contact(contact);
         }
-        this.contact.uri.tag = Util.md5(contact.toString()).substring(0,8);
+        this.contact.tag = Util.md5(contact.toString()).substring(0,8);
         return this;
     }
     public setTransport(transport:Transport):Station {
@@ -77,7 +77,10 @@ export class Station extends Emitter {
         this.emit('connect');
     }
     private onMessage(message:Message){
-        if(message.to.uri.host==this.contact.uri.host && message.to.uri.username==this.contact.uri.username){
+        if(
+            (message.to.uri.host==this.contact.uri.host && message.to.uri.username==this.contact.uri.username)||
+            (message.from.uri.host==this.contact.uri.host && message.from.uri.username==this.contact.uri.username)
+        ){
             if(message instanceof Response){
                 this.emit('response',message);
             }else

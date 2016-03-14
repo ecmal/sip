@@ -9,12 +9,6 @@ export class Uri extends Model {
     params:any;
     headers:any;
 
-    set tag(v:string){
-        this.setParam('tag',v);
-    }
-    get tag():string{
-        return this.getParam('tag');
-    }
     
     setParam(name,value){
         if(!this.params){

@@ -17,16 +17,22 @@ export class Challenge extends Model {
     // qop=auth,
     // algorithm=MD5,
     // opaque="00000041"
-
+    private cn:string;
+    private nc:number;
+    constructor(data?){
+        super(data);
+        this.nc = 1;
+        this.cn = Util.guid();
+    }
     authorize(method:string,uri:Uri):Challenge{
-        var cnonce = Util.guid();
+        var cnonce = this.cn;
         var uuri = new Uri({
             scheme  : uri.scheme,
             host    : uri.host,
             port    : uri.port,
             params  : uri.params
         });
-        var nc = '00000001';
+        var nc = (100000000+(this.nc++)).toString().substring(1);
         var HA1=Util.md5(uri.username+':'+this.params.realm+':'+uri.password);
         var HA2=Util.md5(method+':'+uuri.toString());
         var response =  Util.md5(HA1+':'+this.params.nonce+':'+nc+':'+cnonce+':'+this.params.qop+':'+HA2);

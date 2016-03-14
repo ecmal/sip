@@ -6,6 +6,26 @@ export class Contact extends Model {
     public name:string;
     public uri:Uri;
     public params:any;
+
+    set tag(v:string){
+        this.setParam('tag',v);
+    }
+    get tag():string{
+        return this.getParam('tag');
+    }
+
+    setParam(name,value){
+        if(!this.params){
+            this.params = Object.create(null)
+        }
+        this.params[name]=value;
+    }
+    getParam(name):any{
+        if(this.params){
+            return this.params[name];
+        }
+    }
+    
     constructor(data?){
         if(typeof data =='string'){
             return <Contact>Contact.new(data)

@@ -7,11 +7,14 @@ import {Sequence} from "../models/common/sequence";
 import {Message} from "../models/message";
 import {Response} from "../models/message/response";
 import {Station} from "../station";
+import {Challenge} from "../models/common/challenge";
+
 
 export class RegisterFlow {
 
     private station:Station;
     private request:Request;
+    private challenge:Challenge;
 
     constructor(station:Station){
         this.station = station;
@@ -33,10 +36,14 @@ export class RegisterFlow {
             }),
             contentLength   : 0
         });
+        this.request.setHeader('Allow','INVITE, ACK, CANCEL,  BYE, REFER, NOTIFY, MESSAGE, SUBSCRIBE, INFO');
         this.onResponse = this.onResponse.bind(this);
         this.onConnect = this.onConnect.bind(this);
         this.station.on('response',this.onResponse);
         this.station.on('connect',this.onConnect);
+    }
+    sign(request:Request){
+        request.authorization = this.challenge.authorize(request.method,this.station.contact.uri);
     }
     onConnect(){
         this.station.emit('registering');
@@ -45,8 +52,9 @@ export class RegisterFlow {
     onResponse(message:Response){
         if(message.callId == this.request.callId){
             if(message.status == 401){
+                this.challenge = message.authenticate;
                 if(!this.request.authorization){
-                    this.request.authorization = message.authenticate.authorize(this.request.method,this.station.contact.uri);
+                    this.sign(this.request);
                     this.request.sequence.value++;
                     this.station.transport.send(this.request);
                 }else{

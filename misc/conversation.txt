@@ -313,7 +313,6 @@ SIP/2.0 200 OK
 
 ===============================================================================================================[SENT]>==
 INVITE sip:214@win.freedomdebtrelief.com SIP/2.0
-------------------------------------------------------------------------------------------------------------------------
     Via                 : SIP/2.0/UDP 192.168.10.105:53164;branch=z9hG4bK954602868
     From                : <sip:213@win.freedomdebtrelief.com>;tag=1581751677
     To                  : <sip:214@win.freedomdebtrelief.com>
@@ -326,7 +325,7 @@ INVITE sip:214@win.freedomdebtrelief.com SIP/2.0
     Allow-Events        : talk
     Supported           : replaces
     Content-Length      : 391
-------------------------------------------------------------------------------------------------------------------------
+
     v=0
     o=iSoftPhone 1457898700 1 IN IP4 192.168.10.105
     s=conversation

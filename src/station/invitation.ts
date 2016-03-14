@@ -7,6 +7,7 @@ import {Sequence} from "../models/common/sequence";
 import {Message} from "../models/message";
 import {Response} from "../models/message/response";
 import {Station} from "../station";
+import {Emitter} from "../events";
 
 
 export class InviteMedia {
@@ -35,8 +36,40 @@ export class InviteMedia {
     }
 }
 
+export enum CallState {
+    INITIAL,
+    RINGING,
+    TALKING,
+    DIALING
+}
+
+export class Call extends Emitter {
+
+    public id:string;
+    public state:CallState;
+    public from:Contact;
+    public to:Contact;
+
+    constructor(options){
+        super();
+        this.state = CallState.INITIAL;
+        for(var key in options){
+            this[key] = options[key];
+        }
+    }
+
+    take(){
+        this.emit('take');
+    }
+    drop(){
+        this.emit('drop');
+    }
+
+}
+
 export class InviteFlow {
-    
+
+    private call:Call;
     private media:InviteMedia;
     private station:Station;
     private request:Request;
@@ -72,6 +105,8 @@ export class InviteFlow {
         });
         return obj;
     }
+
+
     constructor(station:Station){
         //this.media = InviteMedia.instance;
         this.station = station;
@@ -85,31 +120,157 @@ export class InviteFlow {
 
     onConnect(){}
     onRequest(message:Request){
-        if(message.method=="INVITE"){
+        //console.info("GOT "+message.method);
+        if(message.method=="ACK"){
+            this.station.emit('call',this.call);
+        }else
+        if(message.method=="BYE"){
             this.request = message;
-            console.info(message.content.toString());
+            this.station.emit('bye',this.call);
+            this.sendByeReply();
+        }else
+        if(message.method=="INVITE"){
+            this.call = new Call({
+                id   : message.callId,
+                from : message.from,
+                to   : message.to,
+            });
+            this.call.once('take',()=>{
+                this.sendTaken();
+            });
+            this.call.once('drop',()=>{
+                this.sendBye();
+            });
+            this.station.emit('invite',this.call);
+            this.request = message;
+            this.request.to.tag = this.station.contact.tag;
+            this.sendTrying();
             this.sendRinging();
-            setTimeout(s=>this.sendTaken(),5000);
-            //console.info(message.toString());
         }
     }
     onResponse(message:Response){
         if(this.request && message.callId == this.request.callId){
-            if(message.status == 401){
-                if(!this.request.authorization){
-                    this.request.authorization = message.authenticate.authorize(this.request.method,this.station.contact.uri);
-                    this.request.sequence.value++;
-                    this.station.transport.send(this.request);
-                }else{
-                    console.info(`Invalid credentials for ${this.station.contact}`);
-                }
-            }else
+            //console.info(message.toString());
+            if(message.status == 100){
+                this.call = new Call({
+                    id   : message.callId,
+                    from : message.from,
+                    to   : message.to,
+                });
+                this.call.once('drop',()=>{
+                    this.sendBye();
+                });
+                this.station.emit('invite',this.call);
+            } else
+            if(message.status == 180){
+                this.station.emit('ringing',this.call);
+            } else
             if(message.status == 200){
-                this.station.emit('register')
+                this.request.from = message.from;
+                this.request.to = message.to;
+                this.station.emit('call',this.call);
+                this.sendAck();
+            } else {
+                this.station.emit('bye',this.call);
             }
         }
     }
+/*
+ ACK sip:201@192.168.10.200:5060;transport=udp SIP/2.0
+Via: SIP/2.0/UDP 192.168.10.105:57176;branch=z9hG4bK1286772749
+Route: <sip:192.168.10.200:5060;lr>
+From: "213" <sip:213@win.freedomdebtrelief.com>;tag=2066254670
+To: "201" <sip:201@win.freedomdebtrelief.com>;tag=ff5271d8
+Call-ID: 61597530
+CSeq: 21 ACK
+Contact: <sip:213@192.168.10.105:57176>
+Max-Forwards: 70
+User-Agent: iSoftPhone Pro 4.0122
+Content-Length: 0
+ */
+    sendAck(){
+        var request = new Request({
+            method          : "ACK",
+            uri             : new Uri({
+                scheme      : this.station.contact.uri.scheme,
+                host        : this.station.contact.uri.host,
+                port        : this.station.contact.uri.port
+            }),
+            from            : this.request.from,
+            to              : this.request.to,
+            callId          : this.request.callId,
+            contact         : this.station.contact,
+            sequence        : new Sequence({
+                method      : "ACK",
+                value       : 1
+            })
+        });
+        request.setHeader("Max-Forwards",70);
+        request.contentLength = 0;
+        var rHost = this.station.transport.socket.remoteAddress;
+        var rPort = this.station.transport.socket.remotePort;
+        request.setHeader("Route",`<sip:${rHost}:${rPort};lr>`);
+        //this.station.registration.sign(request);
+        //console.info(request.toString());
+        this.station.transport.send(request);
+    }
+    sendBye(){
+        var request = new Request({
+            method          : "BYE",
+            uri             : new Uri({
+                scheme      : this.station.contact.uri.scheme,
+                host        : this.station.contact.uri.host,
+                port        : this.station.contact.uri.port
+            }),
+            from            : this.request.to,
+            to              : this.request.from,
+            callId          : this.request.callId,
+            contact         : this.station.contact,
+            sequence        : new Sequence({
+                method      : "BYE",
+                value       : 2
+            })
+        });
+        request.setHeader("Max-Forwards",70);
+        request.contentLength = 0;
+        var rHost = this.station.transport.socket.remoteAddress;
+        var rPort = this.station.transport.socket.remotePort;
+        request.setHeader("Route",`<sip:${rHost}:${rPort};lr>`);
+        console.info(request.toString());
+        if(request.from.uri.username==this.station.contact.uri.username){
+            this.station.registration.sign(request);
+        }
+        this.station.transport.send(request);
+    }
+    sendByeReply(){
+        var response = new Response({
+            status      :200,
+            message     :'OK',
+            via         :this.request.via,
+            from        :this.request.from,
+            to          :this.request.to,
+            sequence    :this.request.sequence,
+            callId      :this.request.callId,
+        });
+        response.setHeader("Record-Route",this.request.getHeader('Record-Route'));
+        response.contentLength = 0;
 
+        this.station.transport.send(response);
+        this.request = null;
+    }
+    sendTrying(){
+        var response = new Response({
+            status      :100,
+            message     :'Trying',
+            via         :this.request.via,
+            from        :this.request.from,
+            to          :this.request.to,
+            sequence    :this.request.sequence,
+            callId      :this.request.callId
+        });
+        response.contentLength = 0;
+        this.station.transport.send(response);
+    }
     sendRinging(){
         var response = new Response({
             status      :180,
@@ -118,7 +279,8 @@ export class InviteFlow {
             from        :this.request.from,
             to          :this.request.to,
             sequence    :this.request.sequence,
-            callId      :this.request.callId
+            callId      :this.request.callId,
+            contact     :this.station.contact
         });
         response.setHeader("Record-Route",this.request.getHeader('Record-Route'));
         response.contentLength = 0;
@@ -156,8 +318,50 @@ export class InviteFlow {
         response.setHeader("Content-Type",'application/sdp');
         response.setHeader("Supported",'replaces, norefersub, extended-refer');
         response.contentLength = response.content.length;
-        console.info(response.toString());
-        console.info(content.toString());
         this.station.transport.send(response);
+    }
+    sendInvite(to:Contact){
+        var content = InviteFlow.encodeSdp(InviteFlow.decodeSdp(`
+            v=0
+            o=Z 0 3 IN IP4 192.168.10.105
+            s=Z
+            c=IN IP4 192.168.10.105
+            t=0 0
+            m=audio 32155 RTP/AVP 110 3 8 0 98 101
+            a=rtpmap:110 speex/8000
+            a=rtpmap:98 iLBC/8000
+            a=fmtp:98 mode=20
+            a=rtpmap:101 telephone-event/8000
+            a=fmtp:101 0-15
+            a=sendrecv
+        `));
+        var request = this.request = new Request({
+            method          : "INVITE",
+            uri             : new Uri({
+                scheme      : this.station.contact.uri.scheme,
+                host        : this.station.contact.uri.host,
+                port        : this.station.contact.uri.port
+            }),
+            from            : this.station.contact,
+            to              : to,
+            contact         : this.station.contact,
+            callId          : Util.guid(),
+            sequence        : new Sequence({
+                method      : "INVITE",
+                value       : 1
+            }),
+            content         : new Buffer(content)
+        });
+        var rHost = this.station.transport.socket.remoteAddress;
+        var rPort = this.station.transport.socket.remotePort;
+        request.setHeader("Record-Route",`<sip:${rHost}:${rPort};lr>`);
+        request.setHeader("Allow",'INVITE, ACK, CANCEL, BYE, NOTIFY, REFER, MESSAGE, OPTIONS, INFO, SUBSCRIBE');
+        request.setHeader("Allow-Events",'presence, kpml');
+        request.setHeader("Content-Type",'application/sdp');
+        request.setHeader("Supported",'replaces, norefersub, extended-refer');
+        this.station.registration.sign(request);
+        request.contentLength = request.content.length;
+        //console.info(request.toString());
+        this.station.transport.send(request);
     }
 }

@@ -40,14 +40,16 @@ export class Transport extends Emitter {
         return -1;
     }
 
-    private socket:Socket;
+    public socket:Socket;
     private message:any;
 
-    private via:Via;
+    public via:Via;
     private agent:Agent;
     private uri:Uri;
     private state:State;
-
+    private get debug():boolean{
+        return true;
+    }
     public get isConnected():boolean{
         return this.state == State.CONNECTED;
     }
@@ -126,7 +128,7 @@ export class Transport extends Emitter {
                     var availableLength = Math.min(pendingLength,chunk.length);
                     var newLength = bodyLength+availableLength;
                     message.content = Buffer.concat([message.content,chunk.slice(0,availableLength)],newLength) ;
-                    console.info("CHUNK",totalLength,bodyLength,pendingLength,availableLength,newLength,message.content.length,chunk.length);
+                    //console.info("CHUNK",totalLength,bodyLength,pendingLength,availableLength,newLength,message.content.length,chunk.length);
                     return chunk.slice(availableLength);
                 }
                 if(message){
@@ -159,8 +161,10 @@ export class Transport extends Emitter {
     }
     
     onMessage(message){
-        console.info("<< RECEIVED -----------------------");
-        console.info(message.toString());
+        if(this.debug){
+            console.info("<< RECEIVED -----------------------");
+            console.info(message.toString());
+        }
         this.emit('message',message);
     }
     
@@ -179,20 +183,28 @@ export class Transport extends Emitter {
         if(message instanceof Response){
             this.sendResponse(message);
         }
+
         if(message.contentLength>0){
+            if(this.debug){
+                console.info(message.content.toString());
+            }
             this.socket.write(message.content);
         }
 
     }
     sendRequest(request:Request){
-        console.info(">> SENT ---------------------------");
-        console.info(request.toString());
+        if(this.debug) {
+            console.info(">> SENT ---------------------------");
+            console.info(request.toString());
+        }
         this.sendText(request.toString());
 
     }
     sendResponse(response:Response){
-        console.info(">> SENT ---------------------------");
-        console.info(response.toString());
+        if(this.debug) {
+            console.info(">> SENT ---------------------------");
+            console.info(response.toString());
+        }
         this.sendText(response.toString());
     }
     sendText(message:string){
