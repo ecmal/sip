@@ -12,10 +12,10 @@ type AgentList = Agent[];
 
 class Agent extends Station {
     static get proxy(){
-        return '10.45.35.56:8060'
+        return 'i3-dcic1-px1.freedomdebtrelief.com:8060'
     }
     static get server(){
-        return 'freedomdebtrelief.com'
+        return 'i3-dcic1-px1.freedomdebtrelief.com'
     }
     static get transport(){
         return Object.defineProperty(this,'transport',<any>{
@@ -235,7 +235,7 @@ System['Stations'] = Object.create(null);
 
 
 Agent.start([
-    ["SP0003","SP0003"]
+    ["SP0001","SP0003"]
 ]).forEach(a=>{
     System['Stations']['A'+a.contact.uri.username]=a;
 });

@@ -172,14 +172,14 @@ export class InviteFlow {
                 this.request.from = message.from;
                 this.request.to = message.to;
                 this.station.emit('call',this.call);
-                this.sendAck();
+                this.sendAck(message);
             } else {
                 this.station.emit('bye',this.call);
             }
         }
     }
 /*
- ACK sip:201@192.168.10.200:5060;transport=udp SIP/2.0
+ACK sip:201@192.168.10.200:5060;transport=udp SIP/2.0
 Via: SIP/2.0/UDP 192.168.10.105:57176;branch=z9hG4bK1286772749
 Route: <sip:192.168.10.200:5060;lr>
 From: "213" <sip:213@win.freedomdebtrelief.com>;tag=2066254670
@@ -191,21 +191,44 @@ Max-Forwards: 70
 User-Agent: iSoftPhone Pro 4.0122
 Content-Length: 0
  */
-    sendAck(){
+    sendAck(response:Response){
+
         var request = new Request({
             method          : "ACK",
-            uri             : this.request.contact.uri,
-            from            : this.request.from,
-            to              : this.request.to,
-            callId          : this.request.callId,
-            contact         : this.station.contact,
+            uri             : response.contact.uri,
+            from            : response.from,
+            to              : response.to,
+            callId          : response.callId,
+            //contact         : this.station.address,
             sequence        : new Sequence({
                 method      : "ACK",
-                value       : 1
+                value       : 10
             })
         });
+        //request.setHeader("Content-Type",'application/sdp');
+        /*var content = InviteFlow.encodeSdp(InviteFlow.decodeSdp(`
+            v=0
+            o=WCB 0 1 IN IP4 ${this.station.address.uri.host}
+            s=conversation
+            c=IN IP4 ${this.station.address.uri.host}
+            t=0 0
+            m=audio 18089 RTP/AVP 0 8 3 97 98 9 18 101
+            a=rtpmap:0 PCMU/8000
+            a=rtpmap:8 PCMA/8000
+            a=rtpmap:3 GSM/8000
+            a=rtpmap:97 G726-32/8000
+            a=rtpmap:98 iLBC/8000
+            a=rptmap:9 G722/8000
+            a=rtpmap:18 G729/8000
+            a=fmtp:18 annexb=yes
+            a=rtpmap:101 telephone-event/8000
+            a=fmtp:101 0-16
+            a=sendrecv
+        `));
+        request.content = new Buffer(content)*/
         request.setHeader("Max-Forwards",70);
         request.contentLength = 0;
+
         /*
         var rHost = this.station.transport.socket.remoteAddress;
         var rPort = this.station.transport.socket.remotePort;
@@ -231,7 +254,7 @@ Content-Length: 0
             from            : from,
             to              : to,
             callId          : this.request.callId,
-            contact         : this.station.contact,
+            contact         : this.station.address,
             sequence        : new Sequence({
                 method      : "BYE",
                 value       : 2
@@ -286,7 +309,7 @@ Content-Length: 0
             to          :this.request.to,
             sequence    :this.request.sequence,
             callId      :this.request.callId,
-            contact     :this.station.contact
+            contact     :this.station.address
         });
         //response.setHeader("Record-Route",this.request.getHeader('Record-Route'));
         response.contentLength = 0;
@@ -320,7 +343,7 @@ Content-Length: 0
             to          :this.request.to,
             sequence    :this.request.sequence,
             callId      :this.request.callId,
-            contact     :this.request.to,
+            contact     :this.station.address,
             content     :new Buffer(content)
         });
         //response.setHeader("Record-Route",this.request.getHeader('Record-Route'));
