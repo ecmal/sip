@@ -3,7 +3,7 @@ import {Model} from "./models/model";
 import * as Models from "./models";
 
 export class Parser {
-    private static normalize(text:string):string{
+    public static normalize(text:string):string{
         if(text.match(/\r?\n/) && text.trim().split(/\r?\n/)[0].match(/SIP\/2\.0/)){
             return text.replace(/\r?\n/g,'\r\n').trim().split('\r\n').map(l=>l.trim()).join('\r\n')+'\r\n';
         }else{

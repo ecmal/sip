@@ -1,6 +1,7 @@
 import {Uri} from "./models/common/uri"
 import {Contact} from "./models/common/contact"
 import {Challenge} from "./models/common/challenge"
+import {Event} from "./models/common/event"
 import {Version} from "./models/common/version"
 import {Via} from "./models/common/via"
 import {Mime} from "./models/common/mime"
@@ -11,12 +12,12 @@ import {Response} from "./models/message/response"
 import {Message} from "./models/message"
 
 //rewrite me
-import {RegisterFlow} from "./station/registration";
+import {RegisterDialog} from "./station/registration";
 
 export {
     Uri,Contact,Version,Via,Mime,Agent,
-    Sequence,Challenge,
+    Sequence,Challenge,Event,
     Message,
-    Request,RegisterFlow,
+    Request,RegisterDialog,
     Response
 }

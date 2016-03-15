@@ -108,6 +108,9 @@ export class Transport extends Emitter {
             });
             var head = new Buffer(0),message:Message=null;
             this.socket.on('data',(chunk)=>{
+                //console.info("CHUNK",chunk.length);
+                //console.info(chunk.toString());
+                
                 var sep,data:Buffer = Buffer.concat([head,chunk],head.length+chunk.length);
                 function messageDone(){
                     return message.contentLength==message.content.length;
@@ -159,15 +162,36 @@ export class Transport extends Emitter {
             }
         });
     }
-    
     onMessage(message){
         if(this.debug){
-            console.info("<< RECEIVED -----------------------");
-            console.info(message.toString());
+            message.print()
         }
-        this.emit('message',message);
+        if(message instanceof Request){
+            this.emit('request',message);
+        } else
+        if(message instanceof Response){
+            this.emit(`response:${message.callId}`,message);
+            this.emit('response',message);
+        }
     }
-    
+
+    request(request:Request){
+        return new Promise((accept,reject)=>{
+            this.once(`response:${request.callId}`,(response:Response)=>{
+                if(response.status>400){
+                    reject(response)
+                }else{
+                    accept(response)
+                }
+            });
+            setTimeout(()=>{this.emit(`response:${request.callId}`,new Response({
+                status  : 408,
+                message : 'Request Timeout',
+                callId  : request.callId
+            }))},60000);
+            this.send(request);
+        })
+    }
 
     send(message:Message){
         message.agent = this.agent;
@@ -185,25 +209,19 @@ export class Transport extends Emitter {
         }
 
         if(message.contentLength>0){
-            if(this.debug){
-                console.info(message.content.toString());
-            }
             this.socket.write(message.content);
         }
 
     }
     sendRequest(request:Request){
         if(this.debug) {
-            console.info(">> SENT ---------------------------");
-            console.info(request.toString());
+            request.print(true)
         }
         this.sendText(request.toString());
-
     }
     sendResponse(response:Response){
         if(this.debug) {
-            console.info(">> SENT ---------------------------");
-            console.info(response.toString());
+            response.print(true)
         }
         this.sendText(response.toString());
     }

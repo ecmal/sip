@@ -1,6 +1,8 @@
 import {Model} from "../model";
 import {Util} from "./utils";
 import {Uri} from "./uri";
+import {Request} from "../message/request";
+
 
 export class Challenge extends Model {
     public type:string;
@@ -24,33 +26,31 @@ export class Challenge extends Model {
         this.nc = 1;
         this.cn = Util.guid();
     }
-    authorize(method:string,uri:Uri):Challenge{
+    authorize(request:Request,username:string,password:string):Challenge{
         var cnonce = this.cn;
-        var uuri = new Uri({
-            scheme  : uri.scheme,
-            host    : uri.host,
-            port    : uri.port,
-            params  : uri.params
-        });
         var nc = (100000000+(this.nc++)).toString().substring(1);
-        var HA1=Util.md5(uri.username+':'+this.params.realm+':'+uri.password);
-        var HA2=Util.md5(method+':'+uuri.toString());
+        var HA1=Util.md5(username+':'+this.params.realm+':'+password);
+        var HA2=Util.md5(request.method+':'+request.uri.toString());
         var response =  Util.md5(HA1+':'+this.params.nonce+':'+nc+':'+cnonce+':'+this.params.qop+':'+HA2);
-        return new Challenge({
+        var challenge = new Challenge({
             type   : this.type,
             params : {
                 realm       : this.params.realm,
                 nonce       : this.params.nonce,
                 qop         : this.params.qop,
                 algorithm   : this.params.algorithm,
-                opaque      : this.params.opaque,
-                uri         : uuri,
-                username    : uri.username,
+                uri         : request.uri.toString(),
+                username    : username,
                 cnonce      : cnonce,
                 nc          : nc,
                 response    : response
             }
-        })
+        });
+        if(this.params.opaque){
+            challenge.params.opaque = this.params.opaque
+        }
+
+        return challenge;
     }
 
     toString(options?:any){

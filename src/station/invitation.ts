@@ -18,21 +18,24 @@ export class InviteMedia {
     }
     private server:any;
     private client:any;
+    private received:any;
     send(message:Buffer){
         this.client.send(message,0,message.length, 7078, "192.168.10.105");
     }
     constructor(){
         this.client = Util.dgram.createSocket("udp4");
         this.server = Util.dgram.createSocket("udp4");
+        this.received = 0;
         this.server.on("message", (msg, rinfo)=>{
-            console.log("server got: " + msg.length + " from " + rinfo.address + ":" + rinfo.port);
+            this.received += msg.length;
+            process.stdout.write("\rMedia Received : " + this.received);
             //this.send(msg);
         });
         this.server.on("listening", ()=>{
             var address = this.server.address();
             console.log("server listening " + address.address + ":" + address.port);
         });
-        this.server.bind(32155);
+        this.server.bind(18089);
     }
 }
 
@@ -73,7 +76,7 @@ export class InviteFlow {
     private media:InviteMedia;
     private station:Station;
     private request:Request;
-    private static encodeSdp(sdp:any):string{
+    public static encodeSdp(sdp:any):string{
         var arr = [];
         for(var k in sdp){
             var v = sdp[k];
@@ -86,7 +89,7 @@ export class InviteFlow {
         arr.push('');
         return arr.join('\r\n');
     }
-    private static decodeSdp(sdp:string):any{
+    public static decodeSdp(sdp:string):any{
         var obj = {};
         sdp.trim().split(/\r?\n/).forEach(p=>{
             p = p.trim();
@@ -108,7 +111,7 @@ export class InviteFlow {
 
 
     constructor(station:Station){
-        //this.media = InviteMedia.instance;
+        this.media = InviteMedia.instance;
         this.station = station;
         this.onRequest = this.onRequest.bind(this);
         this.onResponse = this.onResponse.bind(this);
@@ -143,7 +146,7 @@ export class InviteFlow {
             });
             this.station.emit('invite',this.call);
             this.request = message;
-            this.request.to.tag = this.station.contact.tag;
+
             this.sendTrying();
             this.sendRinging();
         }
@@ -191,11 +194,7 @@ Content-Length: 0
     sendAck(){
         var request = new Request({
             method          : "ACK",
-            uri             : new Uri({
-                scheme      : this.station.contact.uri.scheme,
-                host        : this.station.contact.uri.host,
-                port        : this.station.contact.uri.port
-            }),
+            uri             : this.request.contact.uri,
             from            : this.request.from,
             to              : this.request.to,
             callId          : this.request.callId,
@@ -207,23 +206,30 @@ Content-Length: 0
         });
         request.setHeader("Max-Forwards",70);
         request.contentLength = 0;
+        /*
         var rHost = this.station.transport.socket.remoteAddress;
         var rPort = this.station.transport.socket.remotePort;
         request.setHeader("Route",`<sip:${rHost}:${rPort};lr>`);
+        */
         //this.station.registration.sign(request);
         //console.info(request.toString());
         this.station.transport.send(request);
     }
     sendBye(){
+        var from,to;
+        if(!this.request){return}
+        if(this.call.from.uri.username==this.station.contact.uri.username){
+            from = this.request.from;
+            to = this.request.to;
+        }else{
+            from = this.request.to;
+            to = this.request.from;
+        }
         var request = new Request({
             method          : "BYE",
-            uri             : new Uri({
-                scheme      : this.station.contact.uri.scheme,
-                host        : this.station.contact.uri.host,
-                port        : this.station.contact.uri.port
-            }),
-            from            : this.request.to,
-            to              : this.request.from,
+            uri             : to.uri,
+            from            : from,
+            to              : to,
             callId          : this.request.callId,
             contact         : this.station.contact,
             sequence        : new Sequence({
@@ -252,7 +258,7 @@ Content-Length: 0
             sequence    :this.request.sequence,
             callId      :this.request.callId,
         });
-        response.setHeader("Record-Route",this.request.getHeader('Record-Route'));
+        //response.setHeader("Record-Route",this.request.getHeader('Record-Route'));
         response.contentLength = 0;
 
         this.station.transport.send(response);
@@ -282,23 +288,28 @@ Content-Length: 0
             callId      :this.request.callId,
             contact     :this.station.contact
         });
-        response.setHeader("Record-Route",this.request.getHeader('Record-Route'));
+        //response.setHeader("Record-Route",this.request.getHeader('Record-Route'));
         response.contentLength = 0;
         this.station.transport.send(response);
     }
     sendTaken(){
         var content = InviteFlow.encodeSdp(InviteFlow.decodeSdp(`
             v=0
-            o=Z 0 3 IN IP4 192.168.10.105
-            s=Z
-            c=IN IP4 192.168.10.105
+            o=WCB 0 1 IN IP4 ${this.station.address.uri.host}
+            s=conversation
+            c=IN IP4 ${this.station.address.uri.host}
             t=0 0
-            m=audio 32155 RTP/AVP 110 3 8 0 98 101
-            a=rtpmap:110 speex/8000
+            m=audio 18089 RTP/AVP 0 8 3 97 98 9 18 101
+            a=rtpmap:0 PCMU/8000
+            a=rtpmap:8 PCMA/8000
+            a=rtpmap:3 GSM/8000
+            a=rtpmap:97 G726-32/8000
             a=rtpmap:98 iLBC/8000
-            a=fmtp:98 mode=20
+            a=rptmap:9 G722/8000
+            a=rtpmap:18 G729/8000
+            a=fmtp:18 annexb=yes
             a=rtpmap:101 telephone-event/8000
-            a=fmtp:101 0-15
+            a=fmtp:101 0-16
             a=sendrecv
         `));
         var response = new Response({
@@ -312,7 +323,7 @@ Content-Length: 0
             contact     :this.request.to,
             content     :new Buffer(content)
         });
-        response.setHeader("Record-Route",this.request.getHeader('Record-Route'));
+        //response.setHeader("Record-Route",this.request.getHeader('Record-Route'));
         response.setHeader("Allow",'INVITE, ACK, CANCEL, BYE, NOTIFY, REFER, MESSAGE, OPTIONS, INFO, SUBSCRIBE');
         response.setHeader("Allow-Events",'presence, kpml');
         response.setHeader("Content-Type",'application/sdp');
@@ -323,25 +334,26 @@ Content-Length: 0
     sendInvite(to:Contact){
         var content = InviteFlow.encodeSdp(InviteFlow.decodeSdp(`
             v=0
-            o=Z 0 3 IN IP4 192.168.10.105
-            s=Z
-            c=IN IP4 192.168.10.105
+            o=WCB 0 1 IN IP4 ${this.station.address.uri.host}
+            s=conversation
+            c=IN IP4 ${this.station.address.uri.host}
             t=0 0
-            m=audio 32155 RTP/AVP 110 3 8 0 98 101
-            a=rtpmap:110 speex/8000
+            m=audio 18089 RTP/AVP 0 8 3 97 98 9 18 101
+            a=rtpmap:0 PCMU/8000
+            a=rtpmap:8 PCMA/8000
+            a=rtpmap:3 GSM/8000
+            a=rtpmap:97 G726-32/8000
             a=rtpmap:98 iLBC/8000
-            a=fmtp:98 mode=20
+            a=rptmap:9 G722/8000
+            a=rtpmap:18 G729/8000
+            a=fmtp:18 annexb=yes
             a=rtpmap:101 telephone-event/8000
-            a=fmtp:101 0-15
+            a=fmtp:101 0-16
             a=sendrecv
         `));
         var request = this.request = new Request({
             method          : "INVITE",
-            uri             : new Uri({
-                scheme      : this.station.contact.uri.scheme,
-                host        : this.station.contact.uri.host,
-                port        : this.station.contact.uri.port
-            }),
+            uri             : to.uri,
             from            : this.station.contact,
             to              : to,
             contact         : this.station.contact,
@@ -352,14 +364,14 @@ Content-Length: 0
             }),
             content         : new Buffer(content)
         });
-        var rHost = this.station.transport.socket.remoteAddress;
-        var rPort = this.station.transport.socket.remotePort;
-        request.setHeader("Record-Route",`<sip:${rHost}:${rPort};lr>`);
+        //var rHost = this.station.transport.socket.remoteAddress;
+        //var rPort = this.station.transport.socket.remotePort;
+        //request.setHeader("Record-Route",`<sip:${rHost}:${rPort};lr>`);
         request.setHeader("Allow",'INVITE, ACK, CANCEL, BYE, NOTIFY, REFER, MESSAGE, OPTIONS, INFO, SUBSCRIBE');
         request.setHeader("Allow-Events",'presence, kpml');
         request.setHeader("Content-Type",'application/sdp');
         request.setHeader("Supported",'replaces, norefersub, extended-refer');
-        this.station.registration.sign(request);
+        //this.station.registration.sign(request);
         request.contentLength = request.content.length;
         //console.info(request.toString());
         this.station.transport.send(request);

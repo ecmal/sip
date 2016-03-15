@@ -23,31 +23,32 @@ RequestUri    = Uri / AbsoluteUri
 Headers = CRLF h:Header* { return pairsToObject(h); }
 
 Header
-= k:"Accept" HCOLON v:Accept CRLF {return [k,v]}
-/ k:"Expires" HCOLON v:Expires CRLF {return [k,v]}
-/ k:"From" HCOLON v:Address CRLF {return [k,v]}
-/ k:"To" HCOLON v:Address CRLF {return [k,v]}
-/ k:"Via" HCOLON v:Vias CRLF {return [k,v]}
-/ k:"CSeq" HCOLON v:CSeq CRLF {return [k,v]}
-/ k:"Call-ID" HCOLON v:call_id CRLF {return [k,v]}
-/ k:"Max-Forwards" HCOLON v:integer CRLF {return [k,v]}
-/ k:"Supported" HCOLON v:Supported CRLF {return [k,v]}
-/ k:"Accept" HCOLON v:Accept CRLF {return [k,v]}
-/ k:"Allow" HCOLON v:Allow CRLF {return [k,v]}
-/ k:"Allow-Events" HCOLON v:Allow_Events CRLF {return [k,v]}
-/ k:"Content-Type" HCOLON v:Content_Type CRLF {return [k,v]}
-/ k:"Content-Length" HCOLON v:Content_Length CRLF {return [k,v]}
-/ k:"Content-Disposition" HCOLON v:Content_Disposition CRLF {return [k,v]}
-/ k:"Content-Encoding" HCOLON v:Content_Encoding CRLF {return [k,v]}
-/ k:"Contact" HCOLON v:Contacts CRLF {return [k,v]}
-/ k:"User-Agent" HCOLON v:UserAgent CRLF {return [k,v]}
-/ k:"Event" HCOLON v:Event CRLF {return [k,v]}
-/ k:"Route" HCOLON v:Route CRLF {return [k,v]}
-/ k:"x-inin-crn" HCOLON v:XIninCrn CRLF {return [k,v]}
-/ k:"Record-Route" HCOLON v:Route CRLF {return [k,v]}
-/ k:"WWW-Authenticate" HCOLON v:WWW_Authenticate CRLF {return [k,v]}
-/ k:x_token HCOLON v:Reason_Phrase CRLF {return [k,v]}
-/ k:token HCOLON v:Reason_Phrase CRLF {return [k,v]}
+= k:"Accept"                HCOLON v:Accept                 CRLF {return [k,v]}
+/ k:"Expires"               HCOLON v:Expires                CRLF {return [k,v]}
+/ k:"From"                  HCOLON v:Address                CRLF {return [k,v]}
+/ k:"To"                    HCOLON v:Address                CRLF {return [k,v]}
+/ k:"Via"                   HCOLON v:Vias                   CRLF {return [k,v]}
+/ k:"CSeq"                  HCOLON v:CSeq                   CRLF {return [k,v]}
+/ k:"Call-ID"               HCOLON v:CallId                 CRLF {return [k,v]}
+/ k:"Contact"               HCOLON v:Contacts               CRLF {return [k,v]}
+/ k:"Max-Forwards"          HCOLON v:integer                CRLF {return [k,v]}
+/ k:"Supported"             HCOLON v:Supported              CRLF {return [k,v]}
+/ k:"Accept"                HCOLON v:Accept                 CRLF {return [k,v]}
+/ k:"Allow"                 HCOLON v:Allow                  CRLF {return [k,v]}
+/ k:"Allow-Events"          HCOLON v:Allow_Events           CRLF {return [k,v]}
+/ k:"Content-Type"          HCOLON v:Content_Type           CRLF {return [k,v]}
+/ k:"Content-Length"        HCOLON v:Content_Length         CRLF {return [k,v]}
+/ k:"Content-Disposition"   HCOLON v:Content_Disposition    CRLF {return [k,v]}
+/ k:"Content-Encoding"      HCOLON v:Content_Encoding       CRLF {return [k,v]}
+
+/ k:"User-Agent"            HCOLON v:UserAgent              CRLF {return [k,v]}
+/ k:"Event"                 HCOLON v:Event                  CRLF {return [k,v]}
+/ k:"Route"                 HCOLON v:Route                  CRLF {return [k,v]}
+/// k:"x-inin-crn"            HCOLON v:XIninCrn               CRLF {return [k,v]}
+/ k:"Record-Route"          HCOLON v:Route                  CRLF {return [k,v]}
+/ k:"WWW-Authenticate"      HCOLON v:WWW_Authenticate       CRLF {return [k,v]}
+/ k:x_token                 HCOLON v:Reason_Phrase          CRLF {return [k,v]}
+/ k:token                   HCOLON v:Reason_Phrase          CRLF {return [k,v]}
 ;
 
 // Uri
@@ -378,7 +379,7 @@ Allow_Events = f:event_type r:(COMMA m:event_type {return m})*
 
 // CALL-ID
 
-call_id  =  word ( "@" word )? {return text(); }
+CallId  =  word ( "@" word )? {return text(); }
 
 // CONTACT
 
@@ -396,9 +397,9 @@ ContactParams = p:contact_params* {return pairsToObject(p)}
 
 
 name_addr = n:displayName? LAQUOT u:Uri RAQUOT
-{return {name:n?n:u.username,uri:u}}
+{return n?{name:n,uri:u}:{uri:u}}
 addr_spec = u:UriNoParams
-{return {name:u.username,uri:u}}
+{return {uri:u}}
 
 
 displayName         = displayName: (token ( LWS token )* / quoted_string) {
@@ -425,9 +426,9 @@ qvalue              = "0" ( "." DIGIT? DIGIT? DIGIT? )? {
                         return parseFloat(text()); }
 
 generic_param       = param: token  value: ( EQUAL v:gen_value {return v})? 
-{ return [param.toLowerCase(), value?value[0]:null] }
+{ return [param.toLowerCase(), value?value:null] }
 
-gen_value           = token / host / quoted_string
+gen_value           = token / host / quoted_string {return text()}
 
 
 // CONTENT-DISPOSITION
@@ -464,20 +465,11 @@ content_coding      = token
 Content_Length      = DIGIT+ {return parseInt(text()); }
 // UserAgent
 
-UserAgent  = p:server_val c:(LWS server_val)* 
-{ 
-    var product = p;
-    c.forEach(function(comment){
-        for(var i in comment[1]){
-            product[i] = comment[1][i]
-        }
-    })
-    return M('Agent',product);
-}
-server_val = p:product {return p} / c:comment {return {comment:c}}
+UserAgent  = server_val (LWS server_val)* {return text()}
+server_val = product / comment
 product 
-= n:token SLASH v:token { return {name:n,version:v} }
-/ n:token { return {name:n} }
+= token SLASH token
+/ token
 
 // CONTENT-TYPE
 Accept              
@@ -529,7 +521,7 @@ Expires     = expires: integer {return expires}
 
 
 Event             = t: event_type ps:( SEMI p:event_param {return p} )* 
-{ return {type:t,params:pairsToObject(ps)} }
+{ return M('Event',{type:t,params:pairsToObject(ps)}) }
 
 event_type        = $( event_package ( "." event_template )* ) {return text()}
 event_package     = token_nodot
@@ -630,10 +622,10 @@ r_param = generic_param
 
 // REPLACES
 
-Replaces          = replaces_call_id ( SEMI replaces_params )*
+Replaces          = replaces_CallId ( SEMI replaces_params )*
 { return text() }
 
-replaces_call_id  = call_id
+replaces_CallId  = CallId
 
 
 replaces_params   = "from-tag"i EQUAL from_tag: token {

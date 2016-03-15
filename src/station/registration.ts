@@ -8,46 +8,112 @@ import {Message} from "../models/message";
 import {Response} from "../models/message/response";
 import {Station} from "../station";
 import {Challenge} from "../models/common/challenge";
+import {Event} from "../models/common/event";
 
-
-export class RegisterFlow {
-
-    private station:Station;
-    private request:Request;
-    private challenge:Challenge;
-
-    constructor(station:Station){
-        this.station = station;
-        this.request = new Request({
+export class RegisterRequest extends Request{
+    constructor(contact:Contact,address:Contact){
+        super({
             method          : "REGISTER",
-            uri             : new Uri({
-                scheme      : station.contact.uri.scheme,
-                host        : station.contact.uri.host,
-                port        : station.contact.uri.port
-            }),
-            from            : station.contact.uri,
-            to              : station.contact.uri,
-            contact         : station.contact,
+            uri             : contact.uri.server,
+            from            : contact,
+            to              : contact.clone('name,uri'),
+            contact         : address,
             expires         : 3600,
             callId          : Util.guid(),
+            supported       : ['100rel','path'],
+            allow           : ['INVITE','ACK','CANCEL','BYE','REFER','NOTIFY','MESSAGE','SUBSCRIBE','INFO'],
             sequence        : new Sequence({
                 method      : "REGISTER",
                 value       : 1
             }),
             contentLength   : 0
+        })
+    }
+}
+export class SubscribeRequest extends Request{
+    constructor(contact:Contact,address:Contact){
+        super({
+            method          : "SUBSCRIBE",
+            uri             : contact.uri,
+            from            : contact,
+            to              : contact.clone('name,uri'),
+            contact         : address,
+            callId          : Util.guid(),
+            expires         : 300,
+            event           : new Event({
+                type        : 'message-summary'
+            }),
+            sequence        : new Sequence({
+                method      : "SUBSCRIBE",
+                value       : 1
+            }),
+            maxForwards     : 70,
+            contentLength   : 0
         });
-        this.request.setHeader('Allow','INVITE, ACK, CANCEL,  BYE, REFER, NOTIFY, MESSAGE, SUBSCRIBE, INFO');
+      
+    }
+}
+
+export class RegisterDialog {
+
+    private station:Station;
+    private request:Request;
+    private challenge:Challenge;
+
+    private get address():Contact {
+        return this.station.address;
+    }
+    private get contact():Contact {
+        return this.station.contact;
+    }
+    constructor(station:Station){
+        this.station = station;
         this.onResponse = this.onResponse.bind(this);
+        this.onRequest = this.onRequest.bind(this);
         this.onConnect = this.onConnect.bind(this);
-        this.station.on('response',this.onResponse);
+        //this.station.on('response',this.onResponse);
+        this.station.on('request',this.onRequest);
         this.station.on('connect',this.onConnect);
     }
     sign(request:Request){
-        request.authorization = this.challenge.authorize(request.method,this.station.contact.uri);
+        if(this.challenge) {
+            request.authorization = this.challenge.authorize(request,
+                this.station.contact.uri.username,
+                this.station.contact.uri.password
+            );
+        }
     }
     onConnect(){
-        this.station.emit('registering');
-        this.station.transport.send(this.request)
+        this.doRegister().then(r=>{
+            return this.doSubscribe().then(r=>{
+                this.station.emit('register');
+            });
+        });
+    }
+    doRegister(){
+        return new RegisterRequest(this.contact,this.address).send(this.station.transport);
+    }
+    doSubscribe(){
+        return new SubscribeRequest(this.contact,this.address).send(this.station.transport);
+    }
+    sendNotifyOk(message:Request){
+        var response = new Response({
+            status          : 200,
+            message         : "OK",
+            via             : message.via,
+            from            : message.from,
+            to              : message.to,
+            callId          : message.callId,
+            expires         : 3600,
+            sequence        : message.sequence,
+            contentLength   : 0
+        });
+        this.station.transport.send(response);
+    }
+    onRequest(message:Request){
+        if(message.method=="NOTIFY"){
+            this.sendNotifyOk(message)
+        }
     }
     onResponse(message:Response){
         if(message.callId == this.request.callId){
@@ -62,8 +128,14 @@ export class RegisterFlow {
                 }
             }else
             if(message.status == 200){
-                this.station.emit('register')
+                if(this.request.method=="REGISTER"){
+                    this.doSubscribe();
+                }else
+                if(this.request.method=="NOTIFY"){
+                    this.station.emit('register')
+                }
             }
         }
     }
+
 }

@@ -1,6 +1,7 @@
 import {Model} from "../model";
 
 export class Uri extends Model {
+
     scheme:string;
     username:string;
     password:string;
@@ -29,11 +30,8 @@ export class Uri extends Model {
             super(data);
         }
     }
-    get user():string{
-        return `${this.username}@${this.server}`
-    }
-    get server():string{
-        return `${this.host}${this.port?':'+this.port:''}`
+    get server():Uri{
+        return this.clone('scheme,host,port,params')
     }
     toString(options:any={}){
         var authority = (this.username ? this.username + ( (options.inspect&&this.password) ? ':'+this.password:'' ) +'@': '');
