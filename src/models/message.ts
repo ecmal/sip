@@ -157,7 +157,12 @@ export class Message extends Model {
         this.setHeader(Message.HEADERS.VIA,value);
     }
     public get via():Via{
-        return this.getHeader(Message.HEADERS.VIA)
+        var vias = this.getHeader(Message.HEADERS.VIA);
+        if(Array.isArray(vias)){
+            return vias[0];
+        }else{
+            return vias;
+        }
     }
 
 
@@ -172,5 +177,5 @@ export class Message extends Model {
         data.version = data.version || Version.SIP_2_0;
         super(data);
     }
-   
+    print(){}
 }

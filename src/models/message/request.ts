@@ -1,13 +1,10 @@
 import {Message} from "../message";
 import {Uri} from "../common/uri";
-import {Via} from "../common/via";
 import {Transport} from "../../transport";
-import {Contact} from "../common/contact";
-import {Sequence} from "../common/sequence";
-import {Agent} from "../common/agent";
-import {Util, Paint} from "../common/utils";
+import {Paint} from "../common/utils";
 import {Response} from "./response";
 import {Challenge} from "../common/challenge";
+
 export class Request extends Message {
 
     public method:string;
@@ -38,8 +35,9 @@ export class Request extends Message {
 
     print(s?):Request{
         var c = (s?Paint.magenta:Paint.cyan).bind(Paint);
+        var t = new Date().toISOString().substring(11,23);
         console.info('');
-        console.info(c(`========================================================== REQUEST -- ${s?'>>':'<<'} --`));
+        console.info(`${c('============================================= ')}${Paint.gray(t)}${c(` REQUEST -- ${s?'>>':'<<'} --`)}`);
         console.info(`${Paint.blue(Paint.bold(this.method))} ${Paint.blue(this.uri.toString())} ${this.version}`);
         console.info(c(`---------------------------------------------------------- HEADERS -- ${s?'>>':'<<'} --`));
         console.info(Message.headersToDebugString(this.headers).join('\n'));
@@ -53,5 +51,13 @@ export class Request extends Message {
 
     send(transport:Transport):Promise<Response>{
         return transport.request(this);
+    }
+
+    reply(status,message,fields:string){
+        var data = {status,message};
+        fields.trim().split(',').map(l=>l.trim()).forEach(k=>{
+            data[k] = this[k];
+        });
+        return new Response(data);
     }
 }

@@ -22,8 +22,8 @@ export class Transport extends Emitter {
         return Math.round(Math.random()*0xFFFFFFFF).toString(16)
     }
 
-    private static separator = new Buffer('\r\n\r\n');
-    private static indexOf(buffer:Buffer):number{
+    public static separator = new Buffer('\r\n\r\n');
+    public static indexOf(buffer:Buffer):number{
         var sep =Transport.separator;
         for(var i=0;i<buffer.length-sep.length+1;i++){
             var found = true;
@@ -91,7 +91,11 @@ export class Transport extends Emitter {
     private doConnect(){
         if(this.isDisconnected){
             this.state = State.CONNECTING;
-            this.socket = NET.connect(this.port,this.host);
+            this.socket = NET.connect(<any>{
+                port            : this.port,
+                host            : this.host/*,
+                localPort       : 5060*/
+            });
             this.socket.on('connect',(data)=>{
                 this.state = State.CONNECTED;
                 this.via.host = this.socket.localAddress;
@@ -116,7 +120,12 @@ export class Transport extends Emitter {
                     return message.contentLength==message.content.length;
                 }
                 function writeHead(header){
-                    message = Parser.parse(header,Message);
+                    try{
+                        message = Parser.parse(header, Message);
+                    }catch(ex){
+                        console.info(header);
+                        console.info(ex.stack);
+                    }
                 }
                 function writeBody(chunk){
                     if(!message.content){
@@ -162,19 +171,28 @@ export class Transport extends Emitter {
             }
         });
     }
-    onMessage(message){
+
+    onMessage(message:Message){
         if(this.debug){
             message.print()
         }
         if(message instanceof Request){
-            this.emit('request',message);
+            this.onRequest(message);
         } else
         if(message instanceof Response){
-            this.emit(`response:${message.callId}`,message);
-            this.emit('response',message);
+            this.onResponse(message)
         }
     }
-
+    onRequest(request:Request){
+        if(!request.uri.username && request.method=="OPTIONS"){
+           this.send(request.reply(200,'OK','to,from,callId,sequence,via,maxForwards'));
+        }
+        this.emit('request',request);
+    }
+    onResponse(response:Response){
+        this.emit(`response:${response.callId}`,response);
+        this.emit('response',response);
+    }
     request(request:Request){
         return new Promise((accept,reject)=>{
             this.once(`response:${request.callId}`,(response:Response)=>{

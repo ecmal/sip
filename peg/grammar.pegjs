@@ -47,10 +47,11 @@ Header
 /// k:"x-inin-crn"            HCOLON v:XIninCrn               CRLF {return [k,v]}
 / k:"Record-Route"          HCOLON v:Route                  CRLF {return [k,v]}
 / k:"WWW-Authenticate"      HCOLON v:WWW_Authenticate       CRLF {return [k,v]}
-/ k:x_token                 HCOLON v:Reason_Phrase          CRLF {return [k,v]}
-/ k:token                   HCOLON v:Reason_Phrase          CRLF {return [k,v]}
+/ k:x_token                 HCOLON v:HeaderValue            CRLF {return [k,v]}
+/ k:token                   HCOLON v:HeaderValue            CRLF {return [k,v]}
 ;
 
+HeaderValue = (TEXT_UTF8char/UTF8_CONT/LWS)* {return text()}
 // Uri
 
 Uri         

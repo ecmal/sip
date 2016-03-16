@@ -21,6 +21,7 @@ export class Response extends Message {
     }
     print(s?):Response{
         var status, c = (s?Paint.magenta:Paint.cyan).bind(Paint);
+        var t = new Date().toISOString().substring(11,23);
         if(this.status>=400){
             status = Paint.red(`${this.status} ${this.message}`);
         }else
@@ -34,7 +35,7 @@ export class Response extends Message {
             status = Paint.cyan(`${this.status} ${this.message}`);
         }
         console.info('');
-        console.info(c(`========================================================= RESPONSE -- ${s?'>>':'<<'} --`));
+        console.info(`${c('============================================ ')}${Paint.gray(t)}${c(` RESPONSE -- ${s?'>>':'<<'} --`)}`);
         console.info(`${this.version} ${Paint.bold(status)} `);
         console.info(c(`---------------------------------------------------------- HEADERS -- ${s?'>>':'<<'} --`));
         console.info(Message.headersToDebugString(this.headers).join('\n'));

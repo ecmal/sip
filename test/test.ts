@@ -6,6 +6,7 @@ import {Message} from "sip/models/message";
 import {Request} from "sip/models/message/request";
 import {InviteFlow} from "sip/station/invitation";
 import {Response} from "sip/models/message/response";
+//import {Registry} from "sip/registry";
 
 type AgentMap = {[k:string]:Agent}
 type AgentList = Agent[];
@@ -59,7 +60,7 @@ class Agent extends Station {
         console.info(`Agent ${this.contact} start talking to ${call.from.name} on call ${call.id}`);
         setTimeout(()=>{
             call.drop();
-        },30000)
+        },5000)
     }
     onBye(call){
         console.info(`Agent ${this.contact} end talking to ${call.from.name} on call ${call.id}`);
@@ -124,7 +125,6 @@ class Agent extends Station {
             this.transport.on('message',(m:Message)=>{
                 if(m instanceof Response){
                     if(m.status == 401){
-                        console.info(m.toString());
                         message.sequence.value++;
                         message.authorization = m.authenticate.authorize(message,'Dev3SIP','735433');
                         /*
@@ -176,7 +176,7 @@ type ClientList = Client[];
 
 class Client extends Station {
     static get server(){
-        return 'win.freedomdebtrelief.com'
+        return '10.35.35.48'
     }
     static get transport(){
         return Object.defineProperty(this,'transport',<any>{
@@ -235,18 +235,32 @@ System['Stations'] = Object.create(null);
 
 
 Agent.start([
-    ["SP0001","SP0003"]
+    //["SP0001", "test", "WCB-SP-0001", "19675", "acollins",  "Adam Collins"   ],
+    //["SP0002", "test", "WCB-SP-0002", "19697", "bratcliff", "Bruce Ratcliff" ],
+      ["SP0003", "test", "WCB-SP-0003", "19449", "mblair",    "Mark Blair"     ]
+    //["SP0004", "test", "WCB-SP-0004", "19435", "cfisher",   "Chad Fisher"    ],
 ]).forEach(a=>{
-    System['Stations']['A'+a.contact.uri.username]=a;
+    System['Stations'][a.contact.uri.username]=a;
 });
 
 /*
 Client.start([
-    ["201","201"]
+    ["6026251610",""],
+    ["6026251611",""],
+    ["6026251612",""],
+    ["6026251613",""],
+    ["6026251614",""],
+    ["6026251615",""],
+    ["6026251616",""],
+    ["6026251617",""],
+    ["6026251618",""],
+    ["6026251619",""]
 ]).forEach(a=>{
     System['Stations']['C'+a.contact.uri.username]=a;
-});
-*/
+});*/
+
+//new Registry.start();
+
 /*
 Agent.start([
     ["101","101"]

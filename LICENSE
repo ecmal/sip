@@ -19,3 +19,34 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+
+
+v=0
+o=mozilla...THIS_IS_SDPARTA-40.0.3 2614398491774292815 0 IN IP4 192.0.2.156
+s=-
+t=0 0
+a=sendrecv
+a=fingerprint:sha-256 23:69:2D:04:8F:D6:42:DE:33:AD:08:B4:35:D9:BF:8E:36:8A:90:7D:7B:9C:94:CD:C1:F2:DE:70:4A:37:6D:38
+a=group:BUNDLE sdparta_0
+a=ice-options:trickle
+a=msid-semantic:WMS *
+m=video 61223 UDP/TLS/RTP/SAVPF 120
+c=IN IP4 109.75.34.98
+a=candidate:0 1 UDP 2130379007 192.168.10.105 61223 typ host
+a=candidate:2 1 UDP 2128609535 10.49.49.42 54873 typ host
+a=candidate:1 1 UDP 1694236671 109.75.34.98 61223 typ srflx raddr 192.168.10.105 rport 61223
+a=sendrecv
+a=end-of-candidates
+a=fmtp:120 max-fs=12288;max-fr=60
+a=ice-pwd:2685194ebccdce698041816c306b56af
+a=ice-ufrag:e350114f
+a=mid:sdparta_0
+a=msid:{12615abe-8188-c846-8348-d7da25d796c8} {be2b5c22-24f9-a54a-81bb-5513f62f3777}
+a=rtcp-fb:120 nack
+a=rtcp-fb:120 nack pli
+a=rtcp-fb:120 ccm fir
+a=rtcp-mux
+a=rtpmap:120 VP8/90000
+a=setup:active
+a=ssrc:591442548 cname:{4f7df646-ee94-3c45-9cba-6eb2da3ce22e}
