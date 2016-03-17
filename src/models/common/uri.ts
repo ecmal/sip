@@ -24,6 +24,7 @@ export class Uri extends Model {
     }
 
     constructor(data?){
+        super(data);
         if(typeof data =='string'){
             return <Uri>Uri.new(data)
         }else{

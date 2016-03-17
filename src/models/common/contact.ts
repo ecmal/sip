@@ -31,6 +31,7 @@ export class Contact extends Model {
     }
     
     constructor(data?){
+        super(data);
         if(typeof data =='string'){
             return <Contact>Contact.new(data)
         }else{

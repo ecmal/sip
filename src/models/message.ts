@@ -103,7 +103,7 @@ export class Message extends Model {
         if(Array.isArray(contacts)){
             return contacts[0];
         }else{
-            return contacts;
+            return <any>contacts;
         }
 
     }
@@ -116,7 +116,7 @@ export class Message extends Model {
         if(Array.isArray(events)){
             return events[0];
         }else{
-            return events;
+            return <any>events;
         }
     }
 
@@ -161,7 +161,7 @@ export class Message extends Model {
         if(Array.isArray(vias)){
             return vias[0];
         }else{
-            return vias;
+            return <any>vias;
         }
     }
 

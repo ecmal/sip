@@ -9,7 +9,7 @@ import {Response} from "../models/message/response";
 import {Station} from "../station";
 import {Emitter} from "../events";
 
-interface RtpPacket {
+export interface RtpPacket {
     version         :number,
     padding         :number,
     extension       :number,
@@ -19,7 +19,7 @@ interface RtpPacket {
     timestamp       :number,
     ssrc            :number,
     csrc            :number[],
-    payload         :Buffer,
+    payload         :Buffer
 }
 export class InviteMedia {
     static parsePacket(buf:Buffer):RtpPacket{
@@ -171,6 +171,9 @@ export class InviteFlow {
         }else
         if(message.method=="INVITE"){
             this.onInvite(message);
+        }
+        if(message.method=="CANCEL"){
+            this.sendCancelAccept(message);
         }
     }
     onResponse(message:Response){
@@ -331,10 +334,6 @@ Content-Length: 0
         this.station.transport.send(request);
     }
     onInvite(message:Request){
-
-
-        // remove me
-        this.request = message;
         if(this.call && this.call.id == message.callId){
             this.sendInviteAccept(message)
         }else{
@@ -432,6 +431,20 @@ Content-Length: 0
             sequence        : message.sequence,
             callId          : message.callId,
             contact         : this.station.address,
+            contentLength   : 0
+        });
+        this.station.transport.send(response);
+    }
+    sendCancelAccept(message:Request){
+        var response = new Response({
+            status          : '200',
+            message         : 'Ok',
+            via             : message.via,
+            from            : message.from,
+            to              : message.to,
+            sequence        : message.sequence,
+            callId          : message.callId,
+            //contact         : this.station.address,
             contentLength   : 0
         });
         this.station.transport.send(response);

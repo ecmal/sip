@@ -28,7 +28,7 @@ export class RegisterRequest extends Request{
                 value       : 1
             }),
             contentLength   : 0
-        })
+        });
         //this.setHeader("Record-Route",`<sip:${address.uri.host}:${address.uri.port};lr;transport=tcp>`)
     }
 }
@@ -95,7 +95,8 @@ export class RegisterDialog {
         return new RegisterRequest(this.contact,this.address).send(this.station.transport);
     }
     doSubscribe(){
-        return Promise.resolve(true);//return new SubscribeRequest(this.contact,this.address).send(this.station.transport);
+        return Promise.resolve(true);
+        //return new SubscribeRequest(this.contact,this.address).send(this.station.transport);
     }
     sendNotifyOk(message:Request){
         var response = new Response({
