@@ -78,7 +78,9 @@ export class Transport extends Emitter {
             host        :null,
             port        :null,
             params      : {
-                branch  : `z9hG4bK.${Transport.guid()}`
+                branch  : `z9hG4bK.${Transport.guid()}`,
+                alias   : undefined,
+                rport   : undefined
             }
         });
         this.agent      = new Agent({

@@ -49,21 +49,21 @@ class Agent extends Station {
         console.info(`Agent ${this.name} Registered`);
     }
     onInvite(call){
-        console.info(`Agent ${this.name} Invited by ${call.from.name} to call ${call.id}`);
+        console.info(`Agent ${this.name} Invited by ${call.from.displayName} to call ${call.id}`);
         this.once('call',this.onCall);
         this.once('bye',this.onBye);
-        setTimeout(()=>{
+        /*setTimeout(()=>{
             call.take();
-        },5000)
+        },5000)*/
     }
     onCall(call){
-        console.info(`Agent ${this.contact} start talking to ${call.from.name} on call ${call.id}`);
-        setTimeout(()=>{
+        console.info(`Agent ${this.name} start talking to ${call.to.displayName} on call ${call.id}`);
+        /*setTimeout(()=>{
             call.drop();
-        },5000)
+        },5000)*/
     }
     onBye(call){
-        console.info(`Agent ${this.contact} end talking to ${call.from.name} on call ${call.id}`);
+        console.info(`Agent ${this.name} end talking to ${call.from.displayName} on call ${call.id}`);
     }
     call(extension){
         this.invitation.sendInvite(new Contact(`sip:${extension}@${Agent.server}`));
@@ -207,7 +207,7 @@ class Client extends Station {
         //this.invitation.sendInvite(new Contact("sip:101@win.freedomdebtrelief.com"));
     }
     onInvite(call){
-        console.info(`Agent ${this.contact.name} Invited by ${call.from.name} to call ${call.id}`);
+        console.info(`Agent ${this.name} Invited by ${call.from.name} to call ${call.id}`);
         setTimeout(()=>{
             call.take();
             this.once('call',this.onCall);
@@ -215,10 +215,10 @@ class Client extends Station {
         },10000);
     }
     onCall(call){
-        console.info(`Agent ${this.contact.name} start talking to ${call.from.name} on call ${call.id}`);
+        console.info(`Agent ${this.name} start talking to ${call.from.name} on call ${call.id}`);
     }
     onBye(call){
-        console.info(`Agent ${this.contact.name} end talking to ${call.from.name} on call ${call.id}`);
+        console.info(`Agent ${this.name} end talking to ${call.from.name} on call ${call.id}`);
     }
     call(extension){
         this.invitation.sendInvite(new Contact(`sip:${extension}@${Client.server}`));
@@ -237,8 +237,8 @@ System['Stations'] = Object.create(null);
 Agent.start([
     //["SP0001", "test", "WCB-SP-0001", "19675", "acollins",  "Adam Collins"   ],
     //["SP0002", "test", "WCB-SP-0002", "19697", "bratcliff", "Bruce Ratcliff" ],
-      ["SP0003", "test", "WCB-SP-0003", "19449", "mblair",    "Mark Blair"     ]
-    //["SP0004", "test", "WCB-SP-0004", "19435", "cfisher",   "Chad Fisher"    ],
+      ["SP0003", "test", "WCB-SP-0003", "19449", "mblair",    "Mark Blair"     ],
+      //["SP0004", "test", "WCB-SP-0004", "19435", "cfisher",   "Chad Fisher"    ],
 ]).forEach(a=>{
     System['Stations'][a.contact.uri.username]=a;
 });

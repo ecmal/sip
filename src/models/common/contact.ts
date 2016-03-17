@@ -14,6 +14,10 @@ export class Contact extends Model {
         return this.getParam('tag');
     }
 
+    get displayName(){
+        return this.name||this.uri.username;
+    }
+
     setParam(name,value){
         if(!this.params){
             this.params = Object.create(null)

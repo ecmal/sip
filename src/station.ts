@@ -33,7 +33,7 @@ export class Station extends Emitter {
         return !(this.state==State.OFFLINE || this.state == State.REGISTERING);
     }
     public get name(){
-        return this.contact.name||this.contact.uri.username;
+        return this.contact.displayName;
     }
 
     constructor(contact:Contact|string, transport?:Transport) {
@@ -53,7 +53,7 @@ export class Station extends Emitter {
         }else{
             this.contact = new Contact(contact);
         }
-        this.contact.tag = Util.hash(8,this.contact);
+        this.contact.tag = Util.hash(8);
         return this;
     }
     public setTransport(transport:Transport):Station {

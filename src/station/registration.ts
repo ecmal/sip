@@ -20,7 +20,8 @@ export class RegisterRequest extends Request{
             contact         : address,
             expires         : 3600,
             callId          : Util.guid(),
-            supported       : ['100rel','path'],
+            maxForwards     : 70,
+            supported       : ['outbound','100rel','path'],
             allow           : ['INVITE','ACK','CANCEL','BYE','REFER','NOTIFY','MESSAGE','SUBSCRIBE','INFO'],
             sequence        : new Sequence({
                 method      : "REGISTER",

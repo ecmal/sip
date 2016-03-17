@@ -45,11 +45,15 @@ export class Paint {
     }
 }
 export class Util {
+
     static get crypto():any{
         return require('crypto');
     }
     static get dgram():any{
         return require('dgram');
+    }
+    static random():number{
+        return Math.round(Math.random()*0xFFFFFFFF)
     }
     static guid(){
         return this.crypto.randomBytes(16).toString('hex');
