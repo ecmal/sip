@@ -12,7 +12,8 @@ import {Response} from "./models/message/response"
 import {Message} from "./models/message"
 
 //rewrite me
-import {RegisterDialog} from "./station/registration";
+import {RegisterDialog} from "./dialogs/registration";
+import {InviteDialog} from "./dialogs/invitation";
 
 export {
     Uri,Contact,Version,Via,Mime,Agent,

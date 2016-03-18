@@ -137,7 +137,7 @@ export class Call extends Emitter {
     }
 
 }
-export class InviteFlow {
+export class InviteDialog {
 
     public call:Call;
     private media:InviteMedia;
@@ -162,7 +162,7 @@ export class InviteFlow {
         this.station.on('connect',this.onConnect);
     }
     getSdp(){
-        return new Buffer(InviteFlow.encodeSdp(InviteFlow.decodeSdp(`
+        return new Buffer(InviteDialog.encodeSdp(InviteDialog.decodeSdp(`
             v=0
             o=${this.station.contact.uri.username} ${Util.random()} ${Util.random()} IN IP4 ${this.station.transport.localAddress}
             s=Talk
