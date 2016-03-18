@@ -35,11 +35,15 @@ export class Model  {
         return `${this.constructor.name}(${JSON.stringify(this,null,2)})`;
     }
     clone(select?:string){
-        var keys = select?select.trim().split(',').map(k=>k.trim()).filter((k,i,a)=>a.indexOf(k)==i):Object.keys(this)
-        var object = Object.create(null);
-        for(var key of keys){
-            object[key] = this[key]
+        var object = this.constructor['new'](this.toString());
+        if(select){
+            var keys = select.trim().split(',').map(k=>k.trim()).filter((k,i,a)=>a.indexOf(k)==i);
+            for(var key in object){
+                if(keys.indexOf(key)<0){
+                    delete object[key];
+                }
+            }
         }
-        return new (<any>this.constructor)(object);
+        return object;
     }
 }

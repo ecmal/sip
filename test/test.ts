@@ -1,38 +1,12 @@
-import {Transport} from "sip/transport";
+import {TcpTransport, UdpTransport} from "sip/transport";
 import {Station} from "sip/station";
 import {Contact} from "sip/models/common/contact";
-import {Parser} from "sip/parser";
-import {Message} from "sip/models/message";
-import {Request} from "sip/models/message/request";
-import {InviteFlow} from "sip/station/invitation";
-import {Response} from "sip/models/message/response";
-//import {Registry} from "sip/registry";
+
 
 type AgentMap = {[k:string]:Agent}
 type AgentList = Agent[];
 
 class Agent extends Station {
-/*    static toSip(text:string){
-        return text.split('\n').join('\r\n').concat('\r\n\r\n');
-    }
-    sendRequest(message){
-        try{
-            this.transport.socket.write(Agent.toSip(message));
-        }
-        catch (ex){
-            console.info(ex.stack);
-        }
-
-    }
-    sendResponse(message){
-        try{
-            this.transport.send(new Message(message));
-        }
-        catch (ex){
-            console.info(ex.stack);
-        }
-
-    }*/
     static get proxy(){
         return 'i3-dcic1-px1.freedomdebtrelief.com:8060'
     }
@@ -41,7 +15,7 @@ class Agent extends Station {
     }
     static get transport(){
         return Object.defineProperty(this,'transport',<any>{
-            value : new Transport(`sip:${Agent.proxy}`)
+            value : new UdpTransport(`sip:${Agent.proxy}`)
         }).transport;
     }
     static get directory():AgentMap{
@@ -82,7 +56,7 @@ class Agent extends Station {
         },5000)*/
     }
     onCall(call){
-        console.info(`Agent ${this.name} start talking to ${call.to.displayName} on call ${call.id}`);
+        console.info(`Agent ${this.name} start talking to ${call.from.displayName} on call ${call.id}`);
         /*setTimeout(()=>{
             call.drop();
         },5000)*/
@@ -99,80 +73,6 @@ class Agent extends Station {
     take(){
         this.invitation.call.take();
     }
-
-    testCall(){
-        try {
-            var guid= `<urn:uuid:${Math.round(Math.random()*0xFFFFFFFF).toString(16)}-4303-475b-bbd4-ca6559d3f960>`;
-            var message:Request = <Request>Parser.parse(Parser.normalize(`
-                INVITE sip:123456789@i3-dcic1-px1.freedomdebtrelief.com:8060 SIP/2.0
-                Via: SIP/2.0/TCP 10.19.19.112:50454;branch=z9hG4bK.uMqMnoOis;rport
-                From: <sip:Dev3SIP@i3-dcic1-px1.freedomdebtrelief.com>;tag=${Math.round(Math.random()*0xFFFFFFFF)}
-                To: sip:123456789@i3-dcic1-px1.freedomdebtrelief.com
-                CSeq: 20 INVITE
-                Call-ID: ${Math.round(Math.random()*0xFFFFFFFF)}
-                Max-Forwards: 70
-                Supported: outbound
-                Content-Type: application/sdp
-                Content-Length: 584
-                Contact: <sip:Dev3SIP@${this.transport.socket.localAddress}:${this.transport.socket.localPort};transport=tcp>;+sip.instance="${guid}"
-                User-Agent: Linphone/3.9.0 (belle-sip/1.4.2)
-            `),Message);
-
-            delete message.from.name;
-            delete message.to.name;
-
-            message.setHeader('Allow','INVITE, ACK, CANCEL, OPTIONS, BYE, REFER, NOTIFY, MESSAGE, SUBSCRIBE, INFO, UPDATE')
-            message.content = new Buffer(InviteFlow.encodeSdp(InviteFlow.decodeSdp(`
-                v=0
-                o=Dev3SIP 714 2813 IN IP4 10.19.19.112
-                s=Talk
-                c=IN IP4 10.19.19.112
-                t=0 0
-                a=rtcp-xr:rcvr-rtt=all:10000 stat-summary=loss,dup,jitt,TTL voip-metrics
-                m=audio 18089 RTP/AVP 96 97 98 0 8 3 9 99 10 11 101 100 102 103 104
-                a=rtpmap:96 opus/48000/2
-                a=fmtp:96 useinbandfec=1
-                a=rtpmap:97 speex/16000
-                a=fmtp:97 vbr=on
-                a=rtpmap:98 speex/8000
-                a=fmtp:98 vbr=on
-                a=rtpmap:99 speex/32000
-                a=fmtp:99 vbr=on
-                a=rtpmap:101 telephone-event/48000
-                a=rtpmap:100 telephone-event/16000
-                a=rtpmap:102 telephone-event/8000
-                a=rtpmap:103 telephone-event/32000
-                a=rtpmap:104 telephone-event/44100
-            `)));
-            message.contentLength = message.content.length;
-            //this.registration.sign(message);
-            this.transport.send(message);
-            this.transport.on('message',(m:Message)=>{
-                if(m instanceof Response){
-                    if(m.status == 401){
-                        message.sequence.value++;
-                        message.authorization = m.authenticate.authorize(message,'Dev3SIP','735433');
-                        /*
-                        this.transport.send(<Request>Parser.parse(Parser.normalize(`
-                            ACK sip:123456789@i3-dcic1-px1.freedomdebtrelief.com:8060 SIP/2.0
-                            Via: SIP/2.0/TCP 10.19.19.112:56671;branch=z9hG4bK.eMq88P7ia;rport
-                            Call-ID: ${message.callId}
-                            From: ${m.from}
-                            To: ${m.to}
-                            Contact: ${message.contact} 
-                            Max-Forwards: 70
-                            CSeq: 20 ACK
-                            Content-Length: 0
-                        `),Message));*/
-                        message.callId = Math.round(Math.random()*0xFFFFFFFF).toString();
-                        this.transport.send(message);
-                    }
-                }
-            })
-        }catch(ex){
-            console.info(ex.stack)
-        }
-    }
 }
 
 type ClientMap = {[k:string]:Client}
@@ -184,7 +84,7 @@ class Client extends Station {
     }
     static get transport(){
         return Object.defineProperty(this,'transport',<any>{
-            value : new Transport(`sip:${Client.server}`)
+            value : new UdpTransport(`sip:${Client.server}`)
         }).transport;
     }
     static get directory():ClientMap{
@@ -243,7 +143,7 @@ Agent.start([
     //["SP0001", "test", "WCB-SP-0001", "19675", "acollins",  "Adam Collins"   ],
     //["SP0002", "test", "WCB-SP-0002", "19697", "bratcliff", "Bruce Ratcliff" ],
     ["SP0003", "test", "WCB-SP-0003", "19449", "mblair",    "Mark Blair"     ],
-    //["SP0004", "test", "WCB-SP-0004", "19435", "cfisher",   "Chad Fisher"    ],
+    ["SP0004", "test", "WCB-SP-0004", "19435", "cfisher",   "Chad Fisher"    ]
 ]).forEach(a=>{
     System['Stations'][a.contact.uri.username]=a;
 });

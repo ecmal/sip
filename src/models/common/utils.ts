@@ -45,11 +45,30 @@ export class Paint {
     }
 }
 export class Util {
+    public static getLocalIpAddress():Promise<string>{
+        return new Promise((accept,reject)=>{
+            try {
+                var dis = require('net').connect(80, 'google.com');
+                dis.on('connect', r=>{
+                    var address = dis.localAddress;
+                    dis.end();
+                    dis.destroy();
+                    accept(address);
+                });
+                dis.on('error',e=>reject(e))
+            }catch(ex){
+                reject(ex);
+            }
+        });
 
+    }
     static get crypto():any{
         return require('crypto');
     }
-    static get dgram():any{
+    static get net():any{
+        return require('net');
+    }
+    static get udp():any{
         return require('dgram');
     }
     static random():number{

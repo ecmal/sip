@@ -5,6 +5,11 @@ export class Response extends Message {
     public status:number;
     public message:string;
 
+    get headline():string{
+        return `${this.version} ${this.status} ${this.message}`;
+
+    }
+
     get authenticate():Challenge{
         return this.getHeader(Message.HEADERS.WWW_AUTHENTICATE);
     }
@@ -13,7 +18,7 @@ export class Response extends Message {
     }
     toString(){
         return [
-            `${this.version} ${this.status} ${this.message}`,
+            this.headline,
             ...Message.headersToString(this.headers),
             '',
             ''

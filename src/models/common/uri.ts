@@ -30,6 +30,9 @@ export class Uri extends Model {
         }else{
             super(data);
         }
+        if(!this.scheme){
+            this.scheme = 'sip'
+        }
     }
     get server():Uri{
         return this.clone('scheme,host,port,params')

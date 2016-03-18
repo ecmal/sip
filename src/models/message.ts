@@ -69,6 +69,9 @@ export class Message extends Model {
             this.headers[k] = v[k];
         }
     }
+    get headline():string{
+        throw new Error('abstract property "headline')
+    }
     content:Buffer;
 
     set callId(value:string){
@@ -105,9 +108,7 @@ export class Message extends Model {
         }else{
             return <any>contacts;
         }
-
     }
-
     set event(value:Event){
         this.setHeader(Message.HEADERS.EVENT,value);
     }
@@ -177,5 +178,18 @@ export class Message extends Model {
         data.version = data.version || Version.SIP_2_0;
         super(data);
     }
-    print(){}
+
+    print(b?:boolean){}
+
+    public toBuffer(){
+        var head = new Buffer(this.toString());
+        if(this.content){
+            return Buffer.concat(
+                [head,this.content],
+                head.length+this.content.length
+            );
+        }else{
+            return head;
+        }
+    }
 }

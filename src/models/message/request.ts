@@ -9,7 +9,9 @@ export class Request extends Message {
 
     public method:string;
     public uri:Uri;
-
+    get headline():string{
+        return `${this.method} ${this.uri} ${this.version}`;
+    }
     set expires(value:number){
         this.setHeader(Message.HEADERS.EXPIRES,value);
     }
@@ -26,7 +28,7 @@ export class Request extends Message {
 
     toString(){
         return [
-            `${this.method} ${this.uri} ${this.version}`,
+            this.headline,
             ... Message.headersToString(this.headers),
             '',
             ''

@@ -12,12 +12,13 @@ export enum State {
     OFFLINE,
     REGISTERING,
     ONLINE,
-    CALLING,
+    DIALING,
     TALKING,
     RINGING
 }
 
 export class Station extends Emitter {
+
     public state:State;
     public transport:Transport;
     public contact:Contact;
@@ -25,6 +26,10 @@ export class Station extends Emitter {
 
     public registration:RegisterDialog;
     public invitation:InviteFlow;
+
+    public connected(){
+        return this.transport.connected
+    }
 
     private get isOffline():boolean{
         return this.state == State.OFFLINE;
@@ -58,15 +63,12 @@ export class Station extends Emitter {
     }
     public setTransport(transport:Transport):Station {
         if(!this.transport){
-            this.transport = <Transport>transport;
+            this.transport      = <Transport>transport;
             this.registration   = new RegisterDialog(this);
             this.invitation     = new InviteFlow(this);
-            this.transport.on('connect',this.onConnect);
+            this.transport.on(Transport.CONNECT,this.onConnect);
             this.transport.on('request',this.onRequest);
             this.transport.on('response',this.onResponse);
-            if(this.transport.isConnected){
-                this.emit('connect');
-            }
         }
         return this;
     }
@@ -79,8 +81,8 @@ export class Station extends Emitter {
     }
     private onConnect(){
         this.address = new Contact(this.contact.toString());
-        this.address.uri.host = this.transport.socket.localAddress;
-        this.address.uri.port = this.transport.socket.localPort;
+        this.address.uri.host = this.transport.localAddress;
+        this.address.uri.port = this.transport.localPort;
         this.emit('connect');
     }
 
@@ -89,8 +91,9 @@ export class Station extends Emitter {
             this.emit('request',request);
         }
     }
-
     private onResponse(response:Request){
         this.emit('response',response);
     }
+
+
 }

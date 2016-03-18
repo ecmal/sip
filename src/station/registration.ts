@@ -10,14 +10,14 @@ import {Station} from "../station";
 import {Challenge} from "../models/common/challenge";
 import {Event} from "../models/common/event";
 
-export class RegisterRequest extends Request{
+export class RegisterRequest extends Request {
     constructor(contact:Contact,address:Contact){
         super({
             method          : "REGISTER",
             uri             : contact.uri.server,
             from            : contact,
             to              : contact.clone('name,uri'),
-            contact         : address,
+            
             expires         : 3600,
             callId          : Util.guid(),
             maxForwards     : 70,
@@ -71,10 +71,9 @@ export class RegisterDialog {
         this.station = station;
         this.onResponse = this.onResponse.bind(this);
         this.onRequest = this.onRequest.bind(this);
-        this.onConnect = this.onConnect.bind(this);
-        //this.station.on('response',this.onResponse);
+        
         this.station.on('request',this.onRequest);
-        this.station.on('connect',this.onConnect);
+        this.doRegister();
     }
     sign(request:Request){
         if(this.challenge) {
@@ -84,13 +83,7 @@ export class RegisterDialog {
             );
         }
     }
-    onConnect(){
-        this.doRegister().then(r=>{
-            return this.doSubscribe().then(r=>{
-                this.station.emit('register');
-            });
-        });
-    }
+
     doRegister(){
         return new RegisterRequest(this.contact,this.address).send(this.station.transport);
     }
