@@ -1,5 +1,5 @@
 import {TcpTransport, UdpTransport} from "sip/transport";
-import {Station} from "sip/station";
+import {Station} from "sip/station/station";
 import {Contact} from "sip/models/common/contact";
 import {Agent} from "sip/station/agent";
 import {Client} from "sip/station/client";
@@ -34,15 +34,6 @@ Client.start([
     System['Stations']['C'+a.contact.uri.username]=a;
 });*/
 
-//new Registry.start();
-
-/*
-Agent.start([
-    ["101","101"]
-]).forEach(a=>{
-    System['Stations']['A'+a.contact.uri.username]=a;
-});
-*/
 
 
 

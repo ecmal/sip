@@ -1,10 +1,10 @@
 import {TcpTransport, UdpTransport} from "sip/transport";
-import {Station} from "sip/station";
-import {Contact} from "sip/models/common/contact";
+import {Station} from "./station";
+import {Contact} from "../models/common/contact";
 
 //reverted
-//type ClientMap = {[k:string]:Client}
-//type ClientList = Client[];
+type ClientMap = {[k:string]:Client}
+type ClientList = Client[];
 
 export class Client extends Station {
     static get server(){
