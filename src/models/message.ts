@@ -7,6 +7,7 @@ import {Sequence} from "./common/sequence";
 import {Contact} from "./common/contact";
 import {Event} from "./common/event";
 import {Paint, Color} from "./common/utils";
+import {Mime} from "./common/mime";
 
 export class Message extends Model {
 
@@ -44,6 +45,7 @@ export class Message extends Model {
         VIA                 : 'Via',
         USER_AGENT          : 'User-Agent',
         CONTENT_LENGTH      : 'Content-Length',
+        CONTENT_TYPE        : 'Content-Type',
         CALL_ID             : 'Call-ID',
         CSEQ                : 'CSeq',
         FROM                : 'From',
@@ -53,6 +55,7 @@ export class Message extends Model {
         WWW_AUTHENTICATE    : 'WWW-Authenticate',
         AUTHORIZATION       : 'Authorization',
         ALLOW               : 'Allow',
+        ALLOW_EVENTS        : 'Allow-Events',
         EVENT               : 'Event',
         MAX_FORWARDS        : 'Max-Forwards',
         SUPPORTED           : 'Supported'
@@ -80,6 +83,7 @@ export class Message extends Model {
     get callId():string{
         return this.getHeader(Message.HEADERS.CALL_ID)
     }
+
     set sequence(value:Sequence){
         this.setHeader(Message.HEADERS.CSEQ,value);
     }
@@ -128,18 +132,29 @@ export class Message extends Model {
         return this.getHeader(Message.HEADERS.SUPPORTED);
     }
 
-    set allow(value:string[]){
+    public set allow(value:string[]){
         this.setHeader(Message.HEADERS.ALLOW,value);
     }
-    get allow():string[]{
+    public get allow():string[]{
         return this.getHeader(Message.HEADERS.ALLOW);
     }
-
+    public set allowEvents(value:string[]){
+        this.setHeader(Message.HEADERS.ALLOW_EVENTS,value);
+    }
+    public get allowEvents():string[]{
+        return this.getHeader(Message.HEADERS.ALLOW_EVENTS);
+    }
     public set contentLength(value:number){
         this.setHeader(Message.HEADERS.CONTENT_LENGTH,value);
     }
     public get contentLength():number{
         return <number>this.getHeader(Message.HEADERS.CONTENT_LENGTH);
+    }
+    public set contentType(value:Mime){
+        this.setHeader(Message.HEADERS.CONTENT_TYPE,value);
+    }
+    public get contentType():Mime{
+        return this.getHeader(Message.HEADERS.CONTENT_TYPE)
     }
     public set maxForwards(value:number){
         this.setHeader(Message.HEADERS.MAX_FORWARDS,value);

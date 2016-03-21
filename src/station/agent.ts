@@ -51,27 +51,27 @@ export class Agent extends Station {
         console.info(`Agent ${this.name} Invited by ${call.from.displayName} to call ${call.id}`);
         this.once('call',this.onCall);
         this.once('bye',this.onBye);
-        /*setTimeout(()=>{
+        setTimeout(()=>{
             call.take();
-        },5000)*/
+        },5000)
     }
     onCall(call){
         console.info(`Agent ${this.name} start talking to ${call.from.displayName} on call ${call.id}`);
-        /*setTimeout(()=>{
+        setTimeout(()=>{
             call.drop();
-        },5000)*/
+        },30000)
     }
     onBye(call){
         console.info(`Agent ${this.name} end talking to ${call.from.displayName} on call ${call.id}`);
     }
     call(extension){
-        this.invitation.sendInvite(new Contact(`sip:${extension}@${Agent.server}`));
+        this.calls.sendInvite(new Contact(`sip:${extension}@${Agent.server}`));
     }
     drop(){
-        this.invitation.call.drop();
+        this.calls.call.drop();
     }
     take(){
-        this.invitation.call.take();
+        this.calls.call.take();
     }
 }
 

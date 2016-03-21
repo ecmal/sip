@@ -2,10 +2,8 @@ import {Emitter} from "../events";
 import {Transport} from "../transport";
 import {Contact} from "../models";
 import {RegisterDialog} from "../dialogs/registration";
-import {Message} from "../models/message";
-import {Response} from "../models/message/response";
 import {Request} from "../models/message/request";
-import {InviteDialog} from "../dialogs/invitation";
+import {InviteManager} from "../dialogs/invitation";
 import {Util} from "../models/common/utils";
 
 export enum State {
@@ -25,7 +23,7 @@ export class Station extends Emitter {
     public address:Contact;
 
     public registration:RegisterDialog;
-    public invitation:InviteDialog;
+    public calls:InviteManager;
 
     public connected(){
         return this.transport.connected
@@ -65,7 +63,7 @@ export class Station extends Emitter {
         if(!this.transport){
             this.transport      = <Transport>transport;
             this.registration   = new RegisterDialog(this);
-            this.invitation     = new InviteDialog(this);
+            this.calls = new InviteManager(this);
             this.transport.on(Transport.CONNECT,this.onConnect);
             this.transport.on('request',this.onRequest);
             this.transport.on('response',this.onResponse);

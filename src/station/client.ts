@@ -54,13 +54,13 @@ export class Client extends Station {
         console.info(`Agent ${this.name} end talking to ${call.from.name} on call ${call.id}`);
     }
     call(extension){
-        this.invitation.sendInvite(new Contact(`sip:${extension}@${Client.server}`));
+        this.calls.sendInvite(new Contact(`sip:${extension}@${Client.server}`));
     }
     drop(){
-        this.invitation.call.drop();
+        this.calls.call.drop();
     }
     take(){
-        this.invitation.call.take();
+        this.calls.call.take();
     }
 }
 

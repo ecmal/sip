@@ -11,7 +11,7 @@ import {Challenge} from "../models/common/challenge";
 import {Event} from "../models/common/event";
 
 export class RegisterRequest extends Request {
-    constructor(contact:Contact,address:Contact){
+    constructor(contact:Contact){
         super({
             method          : "REGISTER",
             uri             : contact.uri.server,
@@ -29,7 +29,6 @@ export class RegisterRequest extends Request {
             }),
             contentLength   : 0
         });
-        //this.setHeader("Record-Route",`<sip:${address.uri.host}:${address.uri.port};lr;transport=tcp>`)
     }
 }
 export class SubscribeRequest extends Request{
@@ -52,7 +51,6 @@ export class SubscribeRequest extends Request{
             maxForwards     : 70,
             contentLength   : 0
         });
-        //this.setHeader("Route",`<sip:${address.uri.host}:${address.uri.port};lr;transport=tcp>`)
     }
 }
 export class RegisterDialog {
@@ -85,7 +83,7 @@ export class RegisterDialog {
     }
 
     doRegister(){
-        return new RegisterRequest(this.contact,this.address).send(this.station.transport);
+        return new RegisterRequest(this.contact).send(this.station.transport);
     }
     doSubscribe(){
         return Promise.resolve(true);

@@ -1,6 +1,10 @@
 import {Model} from "../model";
 import {Uri} from "./uri";
 export class Mime extends Model {
+    static SDP = new Mime({
+        type        : 'application',
+        subtype     : 'sdp'
+    });
     public type:string;
     public subtype:Uri;
     public params:any;

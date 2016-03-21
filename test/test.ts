@@ -8,7 +8,6 @@ import {Client} from "sip/station/client";
 
 System['Stations'] = Object.create(null);
 
-
 Agent.start([
     //["SP0001", "test", "WCB-SP-0001", "19675", "acollins",  "Adam Collins"   ],
     //["SP0002", "test", "WCB-SP-0002", "19697", "bratcliff", "Bruce Ratcliff" ],

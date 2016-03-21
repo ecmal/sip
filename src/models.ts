@@ -11,14 +11,11 @@ import {Request} from "./models/message/request"
 import {Response} from "./models/message/response"
 import {Message} from "./models/message"
 
-//rewrite me
-import {RegisterDialog} from "./dialogs/registration";
-import {InviteDialog} from "./dialogs/invitation";
 
 export {
     Uri,Contact,Version,Via,Mime,Agent,
     Sequence,Challenge,Event,
     Message,
-    Request,RegisterDialog,
+    Request,
     Response
 }
