@@ -4,7 +4,7 @@ import {Contact} from "../models";
 import {RegisterDialog} from "../dialogs/registration";
 import {Request} from "../models/message/request";
 import {Util} from "../models/common/utils";
-import {InviteManager} from "./invitation/manager";
+import {InviteManager} from "../dialogs/invitation";
 
 export enum State {
     OFFLINE,

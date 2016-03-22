@@ -108,6 +108,8 @@ export class IncomingInviteDialog extends InviteDialog {
         });
         request.setHeader("Max-Forwards",70);
         request.contentLength = 0;
+        this.emit("bye");
+        this.done();
         this.station.transport.send(request);
     }
     protected sendByeAccept(message:Request){
