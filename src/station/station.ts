@@ -3,8 +3,8 @@ import {Transport} from "../transport";
 import {Contact} from "../models";
 import {RegisterDialog} from "../dialogs/registration";
 import {Request} from "../models/message/request";
-import {InviteManager} from "../dialogs/invitation";
 import {Util} from "../models/common/utils";
+import {InviteManager} from "./invitation/manager";
 
 export enum State {
     OFFLINE,
