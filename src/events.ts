@@ -38,6 +38,10 @@ export class Emitter implements EventEmitter {
     public static off<T>(target:T,event:string,handler:Function):T{
         var events = target[EVENTS];
         if(events){
+            if(!handler){
+                delete  events[event];
+                return;
+            }
             var listeners:Function|Function[] = events[event];
             if(typeof listeners=='function'){
                 if((handler[ORIGINAL]||handler)===(listeners[ORIGINAL]||listeners)){

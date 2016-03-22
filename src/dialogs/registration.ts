@@ -17,7 +17,6 @@ export class RegisterRequest extends Request {
             uri             : contact.uri.server,
             from            : contact,
             to              : contact.clone('name,uri'),
-            
             expires         : 3600,
             callId          : Util.guid(),
             maxForwards     : 70,

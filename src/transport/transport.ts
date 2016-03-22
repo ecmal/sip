@@ -71,7 +71,7 @@ export class Transport extends Emitter {
     }
 
     public get debug():boolean{
-        return true;
+        return false;
     }
 
     constructor(proxy:Uri|string){
@@ -217,16 +217,16 @@ export class Transport extends Emitter {
         if(!request.uri.username && request.method=="OPTIONS"){
            this.send(request.reply(200,'OK','to,from,callId,sequence,via,maxForwards'));
         }
-        this.emit('request',request);
         if(request.callId){
             this.emit(`request:${request.callId}`,request);
         }
+        this.emit('request',request);
     }
     protected onResponse(response:Response){
-        this.emit('response',response);
         if(response.callId){
             this.emit(`response:${response.callId}`,response);
         }
+        this.emit('response',response);
     }
     protected doSend(buffer:Buffer){
         throw new Error('Abstract method "send"')
