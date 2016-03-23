@@ -118,7 +118,12 @@ export class Transport extends Emitter {
                 message.contact.uri.host = this.localAddress;
                 message.contact.uri.port = this.localPort;
             }
-            message.via = this.via;
+            if(!message.via){
+                message.via = this.via;
+            }else{
+                message.vias.push(this.via);
+            }
+
         }
         if(this.debug){
             message.print(true)

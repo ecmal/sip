@@ -169,6 +169,9 @@ export class Message extends Model {
     public get agent():Agent{
         return this.getHeader(Message.HEADERS.USER_AGENT)
     }
+    public get vias():Via[]{
+        return this.getHeader(Message.HEADERS.VIA);
+    }
     public set via(value:Via){
         this.setHeader(Message.HEADERS.VIA,value);
     }

@@ -1,6 +1,7 @@
 import {Contact} from "../../models/common/contact";
 import {Emitter} from "../../events";
 import {Uri} from "../../models/common/uri";
+import {Sdp} from "../../models/common/sdp";
 
 export enum CallState {
     INITIAL,
@@ -20,9 +21,10 @@ export class Call extends Emitter {
     public state:CallState;
     public from:Contact;
     public to:Contact;
+    
+    public localSdp:Sdp;
+    public remoteSdp:Sdp;
 
-    public localMedia:Uri;
-    public remoteMedia:Uri;
     public get localUsername(){
         switch(this.direction){
             case CallDirection.OUTGOING:return this.from.uri.username;

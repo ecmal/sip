@@ -816,5 +816,198 @@ hex12         = hex4 hex4 hex4
 // SDP PARSER
 // ---------------------------------------------------------------------------------------------------------------------
 
+Sdp
+	= line:(line:SdpLine {return line;}) lines:(_eol line:SdpLine {return line;})* _eol*
+	{
+		lines.splice(0, 0, line);
+		var sdp = aggregate(lines);
+		return sdp;
+	};
+
+_eol = [\r\n]+
+_ =[ \t]+;
+
+eq = "=";
+
+versionNumber
+	= n: number { return n; };
+
+number
+	= n: ([\-0-9]+) { return parseFloat(text()); };
+
+str
+	= s: ([^ \t\n\r]+) { return text();}
+
+SdpLine
+	= version / origin / media / connection / timing / repeat / timezones / encryptionKey / bandwidth / attribute / otherType;
+
+version
+	= "v" eq v: versionNumber { return {version: v}; };
+
+time
+	= t: number { return options.useUnixTimes ? t - NTP_OFFSET : t;};
+
+duration
+	= x:number p:("d" / "h" / "m" / "s") { return x * DURATIONS[p];}
+	/ x:number { return x;};
 
 
+origin
+	= "o" eq
+	username:str
+	_ sessionId:str
+	_ sessionVersion:versionNumber
+	_ networkType:str
+	_ addressType:str
+	_ unicastAddress:str
+	{
+		var o = {
+				username: username,
+				sessionId: sessionId,
+				sessionVersion: sessionVersion,
+				networkType: networkType,
+				addressType: addressType,
+				unicastAddress: unicastAddress
+		};
+		var or = {};
+		or[SDP_TYPES["o"]] = o;
+		return or;
+	};
+
+connection
+	= "c" eq
+	networkType:str
+	_ addressType:str
+	_ connectionAddress: str
+	{
+		return {connection: {
+				networkType: networkType,
+				addressType: addressType,
+				connectionAddress: connectionAddress
+		}};
+	};
+
+media
+	= "m" eq type:str _ port:number	numberOfPorts:("/" n:number {return n;}) ?
+	_ protocol:([^ \t]+ {return text();}) formats:(_ format:str { return format;})+
+	{
+		var m = {
+            type     : type,
+            port     : port,
+            protocol : protocol
+		};
+		if (numberOfPorts) {
+			m.numberOfPorts = numberOfPorts;
+		}
+		// TODO better detection of RTP
+		if (options.parseRtpPayloads !== false && protocol.indexOf("RTP/") >= 0) {
+			m.payloads = formats;
+			m.payloads.forEach(function(value, index, arr) {
+					arr[index] = parseFloat(value);
+				});
+		} else {
+			m.formats = formats;
+		}
+		return {media: m};
+	}
+
+bandwidth
+	= "b" eq type: str ":" value: str { return {bandwidth: {type: type, value: value}}};
+
+timing
+	= "t" eq start:time _ stop:time {return {timing:{start: start, stop: stop}}};
+
+repeat
+	= "r" eq interval:duration _ activeDuration:duration offsets:(_ d:duration {return d;})*
+	{ return {repeat: {interval: interval, activeDuration: activeDuration, offsets: offsets}}};
+
+timezones
+	= "z" eq t:timezone ts:(_ t:timezone {return t;})+
+	{ return {timezones: [t].concat(ts)};};
+
+timezone
+	= adjustment:number _ offset:duration {return {adjustment: adjustment, offset: offset}};
+
+encryptionKey
+	= "k" eq method:([^:\r\n]+ {return text();}) ":" key:str { return {encryptionKey: {method: method, key: key}};}
+	/ "k" eq method:str { return {encryptionKey: {method: method}};};
+
+attribute
+	= rtpmapAttribute / fmtpAttribute / valueAttribute / propertyAttribute;
+
+rtpmapAttribute
+	= "a" eq "rtpmap" ":" payload:number
+	_ codec:([^/]+ {return text();})
+	"/" rate:number codecParams:("/" params:str {return params;})?
+	{
+		var rtp = {
+				payload: payload,
+				codec: codec,
+				rate: rate
+		};
+		if (codecParams) {
+			rtp.codecParams = codecParams;
+		}
+		return {rtp: rtp};
+	};
+
+fmtpAttribute
+	= "a" eq "fmtp" ":" payload:number
+	_ params:formatParameters
+	{
+		return { fmtp: {
+				payload: payload,
+				params: params
+		}};
+	};
+
+formatParameters
+	= param:formatParameter params:(";" [ \t]* p:formatParameter {return p;})*
+	{
+		if (params) {
+			params.splice(0, 0, param);
+		} else {
+			params = [param];
+		}
+		return aggregateSdpProperties(params);
+	}
+	/ config:[^\r\n]+ { return text();};
+
+formatParameter
+	= name:([^=;\r\n]+ {return text()})
+	eq value:([^;\r\n]+ {return text();})
+	{ var param = {}; param[name] = value; return param;}
+
+propertyAttribute
+	= "a" eq property: attributeName
+	{
+		var p = {};
+		p[property] = true;
+		return p;
+	}
+
+valueAttribute
+	= "a" eq property: attributeName ":" value:([^\n\r]+ {return text();})
+	{
+		var p = {};
+		p[property] = value;
+		return p;
+	}
+
+attributeName
+	= ([^\n\r:]+)
+	{
+		var name = text();
+		if (options["useLongNames"] !== false && SDP_TYPES[name]) {
+			return SDP_TYPES[name];
+		}
+		return name;
+	};
+
+otherType
+	= type: [a-z] eq value: ([^\r\n]+ {return text();})
+	{
+		var t = {};
+		t[SDP_TYPES[type] ? SDP_TYPES[type] : type] = value;
+		return t;
+	};

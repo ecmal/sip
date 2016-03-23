@@ -28,7 +28,7 @@ export class InviteDialog extends Emitter{
     public station:Station;
 
     constructor(station:Station, call:Call) {
-        super()
+        super();
         this.station = station;
         this.call = call;
     }

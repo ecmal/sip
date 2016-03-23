@@ -6,9 +6,10 @@ import {MediaServer} from "../../media/server";
 import {InviteDialog} from "./dialog";
 import {Sequence} from "../../models/common/sequence";
 import {Mime} from "../../models/common/mime";
+import {Sdp} from "../../models/common/sdp";
 
 export class IncomingInviteDialog extends InviteDialog {
-
+    private request:Request;
     constructor(station:Station,request:Request){
         super(station,new Call({
             id          : request.callId,
@@ -18,7 +19,7 @@ export class IncomingInviteDialog extends InviteDialog {
         }));
         this.onResponse = this.onResponse.bind(this);
         this.onRequest = this.onRequest.bind(this);
-        this.init(request)
+        this.init(this.request=request)
     }
 
     protected onResponse(message:Response){
@@ -32,6 +33,7 @@ export class IncomingInviteDialog extends InviteDialog {
         } else
         if(message.status == 200){
             if(message.sequence.method=="INVITE"){
+                // todo cleanup
                 this.call.state = CallState.TALKING;
                 this.station.emit('call',this.call);
                 var sdp = message.content.toString();
@@ -75,11 +77,17 @@ export class IncomingInviteDialog extends InviteDialog {
     }
     protected onAck(request:Request){
         //request.print();
+        if(request.contentLength>0) {
+            MediaServer.talkTo(this.call,new Sdp(request.content));
+        }
     }
     protected onBye(request:Request){
         this.sendByeAccept(request)
     }
     protected onInvite(request:Request){
+        if(request.contentLength>0) {
+            MediaServer.talkTo(this.call,new Sdp(request.content));
+        }
         this.sendUpdateAccept(request);
     }
     protected onCancel(request:Request){
@@ -97,7 +105,7 @@ export class IncomingInviteDialog extends InviteDialog {
         }
         var request = new Request({
             method          : "BYE",
-            uri             : to.uri,
+            uri             : this.request.contact.uri,
             from            : from,
             to              : to,
             callId          : this.call.id,
@@ -106,6 +114,7 @@ export class IncomingInviteDialog extends InviteDialog {
                 value       : 1
             })
         });
+        request.setHeader("Route",this.request.getHeader("Record-Route"));
         request.setHeader("Max-Forwards",70);
         request.contentLength = 0;
         this.emit("bye");
@@ -116,7 +125,7 @@ export class IncomingInviteDialog extends InviteDialog {
         this.station.transport.send(new Response({
             status      :200,
             message     :'OK',
-            via         :message.via,
+            via         :message.vias,
             from        :message.from,
             to          :message.to,
             sequence    :message.sequence,
@@ -129,7 +138,7 @@ export class IncomingInviteDialog extends InviteDialog {
         var response = new Response({
             status          : '200',
             message         : 'Ok',
-            via             : message.via,
+            via             : message.vias,
             from            : message.from,
             to              : message.to,
             sequence        : message.sequence,
@@ -144,11 +153,13 @@ export class IncomingInviteDialog extends InviteDialog {
         var response = new Response({
             status      : 200,
             message     : 'OK',
-            via         : message.via,
+            via         : message.vias,
             from        : message.from,
             to          : message.to,
             sequence    : message.sequence,
-            callId      : message.callId
+            callId      : message.callId,
+            contentType : Mime.SDP,
+            content     : new Buffer(this.call.localSdp.toString())
         });
         this.emit('update');
         this.station.transport.send(response);
@@ -157,17 +168,17 @@ export class IncomingInviteDialog extends InviteDialog {
         var response = new Response({
             status      : 200,
             message     : 'OK',
-            via         : message.via,
+            via         : message.vias,
             from        : message.from,
             to          : message.to,
             sequence    : message.sequence,
             callId      : message.callId,
             contentType : Mime.SDP,
-            content     : InviteDialog.getSdp(
+            content     : new Buffer(MediaServer.listenTo(this.call).toString())/*InviteDialog.getSdp(
                 this.station.contact.uri.username,
                 this.station.transport.localAddress,
                 MediaServer.RTP_PORT
-            )
+            )*/
         });
         this.emit('accept');
         this.station.transport.send(response);
@@ -176,7 +187,7 @@ export class IncomingInviteDialog extends InviteDialog {
         var response = new Response({
             status      : 603,
             message     : 'Decline',
-            via         : message.via,
+            via         : message.vias,
             from        : message.from,
             to          : message.to,
             sequence    : message.sequence,
@@ -190,7 +201,7 @@ export class IncomingInviteDialog extends InviteDialog {
         var response = new Response({
             status      : 100,
             message     : 'Trying',
-            via         : message.via,
+            via         : message.vias,
             from        : message.from,
             to          : message.to,
             sequence    : message.sequence,
@@ -203,7 +214,7 @@ export class IncomingInviteDialog extends InviteDialog {
         var response = new Response({
             status      : 180,
             message     : 'Ringing',
-            via         : message.via,
+            via         : message.vias,
             from        : message.from,
             to          : message.to,
             sequence    : message.sequence,

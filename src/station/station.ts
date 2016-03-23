@@ -70,6 +70,9 @@ export class Station extends Emitter {
         }
         return this;
     }
+    public register(expires){
+        this.registration.register(expires);
+    }
     public toString(options?:any) {
         return `Station(${this.contact.toString(options)})`;
     }

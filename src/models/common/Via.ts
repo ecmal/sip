@@ -12,7 +12,7 @@ export class Via extends Model {
     public params:any;
 
     toString(options?:any){
-        return `${this.protocol}/${this.version}/${this.transport} ${this.host}:${this.port}${
+        return `${this.protocol}/${this.version}/${this.transport} ${this.host}${this.port?`:${this.port}`:''}${
             Util.toParamString(this.params)
         }`;
     }

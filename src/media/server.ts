@@ -1,4 +1,6 @@
 import {Util} from "../models/common/utils";
+import {Call} from "../dialogs/invitation/call";
+import {Sdp} from "../models/common/sdp";
 
 export interface RtpPacket {
     version         :number,//2bit
@@ -14,8 +16,63 @@ export interface RtpPacket {
     payload         :Buffer
 }
 export class MediaServer {
+
     static RTP_PORT = 18089;
     static RTCP_PORT = 18090;
+
+    static listenTo(call:Call){
+        return call.localSdp = new Sdp({
+            version             : 0,
+            origin              : {
+                username        : call.localUsername,
+                sessionId       : Util.random(),
+                sessionVersion  : Util.random(),
+                networkType     : "IN",
+                addressType     : "IP4",
+                unicastAddress  : this.instance.host
+            },
+            sessionName: call.localUsername,
+            connection: {
+                networkType: "IN",
+                addressType: "IP4",
+                connectionAddress: this.instance.host
+            },
+            timing: {
+                start: 0,
+                stop: 0
+            },
+            media: [
+                {
+                    type        : "audio",
+                    port        : this.instance.rtpPort,
+                    protocol    : "RTP/AVP",
+                    payloads    : [
+                        {
+                            "id": 0,
+                            "rtp": {
+                                "codec": "PCMU",
+                                "rate": 8000
+                            }
+                        },
+                        {
+                            "id": 101,
+                            "rtp": {
+                                "codec": "telephone-event",
+                                "rate": 8000
+                            },
+                            "fmtp": {
+                                "params": "0-15"
+                            }
+                        }
+                    ]
+                }
+            ]
+        });
+    }
+    static talkTo(call:Call,sdp:Sdp){
+        call.remoteSdp = sdp;
+        console.info(sdp.connection.connectionAddress,sdp.audio.port);
+    }
     static toBuffer(buf):Buffer{
         var packet='';
         var firstByte=(buf.version<<6 | buf.padding<<5 | buf.extension<<4 | buf.csrcCount<<3).toString(16);
@@ -39,7 +96,8 @@ export class MediaServer {
         if (buf.length < 12) {
             throw new Error('can not parse buffer smaller than fixed header');
         }
-        var firstByte = buf.readUInt8(0), secondByte = buf.readUInt8(1);
+        var firstByte = buf.readUInt8(0);
+        var secondByte = buf.readUInt8(1);
         var csrcCount = firstByte & 0x0f;
         var parsed:RtpPacket = {
             version          : firstByte >> 6,
@@ -74,11 +132,14 @@ export class MediaServer {
     public packet:RtpPacket;
     public enabled:boolean;
     private get debug(){
-        return false;
+        return true;
     }
     send(message?:Buffer){
         this.server.send(message,0,message.length,this.remotePort,this.remoteAddress);
     }
+    public host:string;
+    public rtpPort:number;
+    public rtcpPort:number;
     constructor(){
         this.server = Util.udp.createSocket("udp4");
         this.rtcp = Util.udp.createSocket("udp4");
@@ -114,11 +175,18 @@ export class MediaServer {
                 this.send(msg);
             }
         });
-        this.server.on("listening", ()=>{
-            var address = this.server.address();
-            console.log("server listening " + address.address + ":" + address.port);
+
+    }
+
+    public listen(host?:string,rtpPort?:number,rtcpPort?:number):Promise<any>{
+        var detect = host?Promise.resolve(host):Util.getLocalIpAddress();
+        return detect.then((host:string)=>{
+            this.host = host;
+            this.rtpPort = rtpPort  = rtpPort||MediaServer.RTP_PORT;
+            this.rtcpPort = rtcpPort = rtcpPort||(rtpPort+1);
+            this.server.bind(rtpPort,host);
+            this.rtcp.bind(rtcpPort,host);
+            console.info(`LISTENING RTP:${rtpPort} / RCTP:${rtcpPort}`);
         });
-        this.server.bind(MediaServer.RTP_PORT);
-        this.rtcp.bind(MediaServer.RTCP_PORT);
     }
 }

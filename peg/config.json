@@ -5,6 +5,7 @@
   "allowedStartRules": [
     "Message",
     "Uri",
-    "Contact"
+    "Contact",
+    "Sdp"
   ]
 }

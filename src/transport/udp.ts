@@ -4,7 +4,9 @@ import {Util} from "../models/common/utils";
 import {Transport} from "./transport";
 
 export class UdpTransport extends Transport {
-
+    public get debug():boolean{
+        return false;
+    }
     public get connected():boolean{
         return !!this.socket;
     }
@@ -23,7 +25,7 @@ export class UdpTransport extends Transport {
     protected queue:Message[];
     protected doInit(){
         this.queue=[];
-        this.doConnect();
+        this.doConnect();//6028928700
     }
     protected doConnect(){
         Util.getLocalIpAddress().then(local=>{

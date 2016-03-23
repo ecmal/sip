@@ -1,6 +1,7 @@
 import {TcpTransport, UdpTransport} from "sip/transport";
 import {Station} from "./station";
 import {Contact} from "../models/common/contact";
+import {Call} from "../dialogs/invitation/call";
 
 //reverted
 type ClientMap = {[k:string]:Client}
@@ -8,7 +9,7 @@ type ClientList = Client[];
 
 export class Client extends Station {
     static get server(){
-        return '10.35.35.48'
+        return '10.35.35.48:5060'
     }
     static get transport(){
         return Object.defineProperty(this,'transport',<any>{
@@ -25,42 +26,59 @@ export class Client extends Station {
             return Client.directory[o[0]]=new Client(o[0],o[1],...o.slice(2));
         })
     }
+    public currentCall:Call;
     constructor(username,password,...options){
-
         super(`sip:${username}:${password}@${Client.server}`,Client.transport);
-        this.onRegister = this.onRegister.bind(this);
-        this.onInvite = this.onInvite.bind(this);
         this.onCall = this.onCall.bind(this);
-        this.onBye = this.onBye.bind(this);
-        this.on('register',this.onRegister);
-        this.on('invite',this.onInvite);
+        this.on('call',this.onCall);
     }
-    onRegister(){
-        console.info(`Client ${this.contact.name} Registered`);
-        //this.invitation.sendInvite(new Contact("sip:101@win.freedomdebtrelief.com"));
-    }
-    onInvite(call){
-        console.info(`Agent ${this.name} Invited by ${call.from.name} to call ${call.id}`);
-        /*setTimeout(()=>{
-         call.take();
-         this.once('call',this.onCall);
-         this.once('bye',this.onBye);
-         },10000);*/
-    }
-    onCall(call){
-        console.info(`Agent ${this.name} start talking to ${call.from.name} on call ${call.id}`);
-    }
-    onBye(call){
-        console.info(`Agent ${this.name} end talking to ${call.from.name} on call ${call.id}`);
+    onCall(call:Call){
+        this.currentCall = call;
+        call.on('init',()=>{
+            console.info(`DIALOG ${call.id} INIT`);
+        });
+        call.on('trying',()=>{
+            console.info(`DIALOG ${call.id} TRYING`);
+        });
+        call.on('ringing',()=>{
+            console.info(`DIALOG ${call.id} RINGING`);
+        });
+        call.on('update',()=>{
+            console.info(`DIALOG ${call.id} UPDATE`);
+        });
+        call.on('cancel',()=>{
+            console.info(`DIALOG ${call.id} CANCEL`);
+        });
+        call.on('bye',()=>{
+            console.info(`DIALOG ${call.id} BYE`);
+        });
+        call.on('accept',()=>{
+            console.info(`DIALOG ${call.id} ACCEPT`);
+        });
+        call.on('reject',()=>{
+            console.info(`DIALOG ${call.id} REJECT`);
+        });
+        call.on('done',()=>{
+            console.info(`DIALOG ${call.id} DONE`);
+            this.currentCall = null;
+        });
     }
     call(extension){
         this.calls.sendInvite(new Contact(`sip:${extension}@${Client.server}`));
     }
     drop(){
-        this.calls.call.drop();
+        if(this.currentCall){
+            this.currentCall.drop();
+        }else{
+            console.error("No Call Session Available")
+        }
     }
     take(){
-        this.calls.call.take();
+        if(this.currentCall){
+            this.currentCall.take();
+        }else{
+            console.error("No Call Session Available")
+        }
     }
 }
 

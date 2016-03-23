@@ -74,20 +74,20 @@ export class OutgoingInviteDialog extends InviteDialog {
         this.station.transport.send(new Response({
             status      :200,
             message     :'OK',
-            via         :message.via,
+            via         :message.vias,
             from        :message.from,
             to          :message.to,
             sequence    :message.sequence,
             callId      :message.callId,
         }));
-        this.call.emit("bye")
+        this.call.emit("bye");
         this.done();
     }
     protected sendCancelAccept(message:Request){
         var response = new Response({
             status          : '200',
             message         : 'Ok',
-            via             : message.via,
+            via             : message.vias,
             from            : message.from,
             to              : message.to,
             sequence        : message.sequence,
@@ -163,7 +163,7 @@ export class OutgoingInviteDialog extends InviteDialog {
         var response = new Response({
             status      : 200,
             message     : 'OK',
-            via         : message.via,
+            via         : message.vias,
             from        : message.from,
             to          : message.to,
             sequence    : message.sequence,

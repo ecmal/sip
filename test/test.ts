@@ -4,11 +4,26 @@ import {Contact} from "sip/models/common/contact";
 import {Agent} from "sip/station/agent";
 import {Client} from "sip/station/client";
 import {MediaServer,RtpPacket} from "sip/media/server";
+import {Sdp} from "sip/models/common/sdp";
 
-var buf:Buffer=new Buffer('80807d5f33bb8d15f058202b3b393b3f4b69d3c2bbb8b8bac0ce744b3e3936373b4256ddc5bbb7b5b7bcc6e15240393535383d4bffcbbdb8b5b5b9c0d261463c3735373b455dd6c2bbb7b6b9becbf44e403a38383b4253e9cbbfbbb9bbbec9de5c493f3c3c3e444f6ed7c8c1bebfc2cad974544a444344495164e9d5ccc9c9cbd0dbf26659524f50555c68fee9dfdddddfe5ecf87c767679fff9f6f6fc786c655f5d5d5f697ee8dcd5d0cfd2',"hex");
 
-console.info('Parsed',MediaServer.parsePacket(buf));
-console.info('Reversed',MediaServer.parsePacket(MediaServer.toBuffer({
+var sdp = new Sdp(`v=0
+o=iTunes 3413821438 0 IN IP4 fe80::217:f2ff:fe0f:e0f6
+s=iTunes
+c=IN IP4 fe80::5a55:caff:fe1a:e187
+t=0 0
+m=audio 0 RTP/AVP 96
+a=rtpmap:96 AppleLossless/456/oo
+a=fmtp:96 352 0 16 40 10 14 2 255 0 0 44100
+a=fpaeskey:RlBMWQECAQAAAAA8AAAAAPFOnNe+zWb5/n4L5KZkE2AAAAAQlDx69reTdwHF9LaNmhiRURTAbcL4brYAceAkZ49YirXm62N4
+a=aesiv:5b+YZi9Ikb845BmNhaVo+Q`)
+MediaServer.instance.listen();
+//console.info(sdp.toString());
+
+//var buf:Buffer=new Buffer('80807d5f33bb8d15f058202b3b393b3f4b69d3c2bbb8b8bac0ce744b3e3936373b4256ddc5bbb7b5b7bcc6e15240393535383d4bffcbbdb8b5b5b9c0d261463c3735373b455dd6c2bbb7b6b9becbf44e403a38383b4253e9cbbfbbb9bbbec9de5c493f3c3c3e444f6ed7c8c1bebfc2cad974544a444344495164e9d5ccc9c9cbd0dbf26659524f50555c68fee9dfdddddfe5ecf87c767679fff9f6f6fc786c655f5d5d5f697ee8dcd5d0cfd2',"hex");
+
+//console.info('Parsed',MediaServer.parsePacket(buf));
+/*console.info('Reversed',MediaServer.parsePacket(MediaServer.toBuffer({
     version:2,
     padding:0,
     extension:0,
@@ -19,7 +34,7 @@ console.info('Reversed',MediaServer.parsePacket(MediaServer.toBuffer({
     timestamp:867929365,
     ssrc: 4032307243,
     payload:'3b393b3f4b69d3c2bbb8b8bac0ce744b3e3936373b4256ddc5bbb7b5b7bcc6e15240393535383d4bffcbbdb8b5b5b9c0d261463c3735373b455dd6c2bbb7b6b9becbf44e403a38383b4253e9cbbfbbb9bbbec9de5c493f3c3c3e444f6ed7c8c1bebfc2cad974544a444344495164e9d5ccc9c9cbd0dbf26659524f50555c68fee9dfdddddfe5ecf87c767679fff9f6f6fc786c655f5d5d5f697ee8dcd5d0cfd2'
-})));
+})));*/
 
 
 
@@ -31,11 +46,13 @@ Agent.start([
     ["SP0003", "test", "WCB-SP-0003", "19449", "mblair",    "Mark Blair"     ],
     ["SP0004", "test", "WCB-SP-0004", "19435", "cfisher",   "Chad Fisher"    ]
 ]).forEach(a=>{
+    a.register(3600);
     System['Stations'][a.contact.uri.username]=a;
 });
 
-/*
+
 Client.start([
+    ["testuser",""],
     ["6026251610",""],
     ["6026251611",""],
     ["6026251612",""],
@@ -47,8 +64,12 @@ Client.start([
     ["6026251618",""],
     ["6026251619",""]
 ]).forEach(a=>{
+    /*if(a.contact.uri.username=="testuser"){
+        a.register(3600)
+    }*/
+    a.register(3600);
     System['Stations']['C'+a.contact.uri.username]=a;
-});*/
+});
 
 
 

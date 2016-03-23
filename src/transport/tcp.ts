@@ -2,7 +2,9 @@ import {Message} from "../models/message";
 import {Util} from "../models/common/utils";
 import {Transport} from "./transport";
 export class TcpTransport extends Transport {
-
+    public get debug():boolean{
+        return false;
+    }
     public get protocol():string{
         return 'TCP';
     }

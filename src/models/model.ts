@@ -11,7 +11,7 @@ export class Model  {
     }
     constructor(data?){
         Object.defineProperty(this,'class',<any>{
-            enumerable:true,
+            enumerable:false,
             value:this.constructor.name
         });
         if(data){
