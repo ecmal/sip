@@ -3,6 +3,23 @@ import {Station} from "sip/station/station";
 import {Contact} from "sip/models/common/contact";
 import {Agent} from "sip/station/agent";
 import {Client} from "sip/station/client";
+import {MediaServer,RtpPacket} from "sip/media/server";
+
+var buf:Buffer=new Buffer('80807d5f33bb8d15f058202b3b393b3f4b69d3c2bbb8b8bac0ce744b3e3936373b4256ddc5bbb7b5b7bcc6e15240393535383d4bffcbbdb8b5b5b9c0d261463c3735373b455dd6c2bbb7b6b9becbf44e403a38383b4253e9cbbfbbb9bbbec9de5c493f3c3c3e444f6ed7c8c1bebfc2cad974544a444344495164e9d5ccc9c9cbd0dbf26659524f50555c68fee9dfdddddfe5ecf87c767679fff9f6f6fc786c655f5d5d5f697ee8dcd5d0cfd2',"hex");
+
+console.info('Parsed',MediaServer.parsePacket(buf));
+console.info('Reversed',MediaServer.parsePacket(MediaServer.toBuffer({
+    version:2,
+    padding:0,
+    extension:0,
+    csrcCount:0,
+    marker:1,
+    type:0,
+    sequence:32095,
+    timestamp:867929365,
+    ssrc: 4032307243,
+    payload:'3b393b3f4b69d3c2bbb8b8bac0ce744b3e3936373b4256ddc5bbb7b5b7bcc6e15240393535383d4bffcbbdb8b5b5b9c0d261463c3735373b455dd6c2bbb7b6b9becbf44e403a38383b4253e9cbbfbbb9bbbec9de5c493f3c3c3e444f6ed7c8c1bebfc2cad974544a444344495164e9d5ccc9c9cbd0dbf26659524f50555c68fee9dfdddddfe5ecf87c767679fff9f6f6fc786c655f5d5d5f697ee8dcd5d0cfd2'
+})));
 
 
 

@@ -1,20 +1,37 @@
 import {Util} from "../models/common/utils";
 
 export interface RtpPacket {
-    version         :number,
-    padding         :number,
-    extension       :number,
-    marker          :number,
-    type            :number,
-    sequence        :number,
-    timestamp       :number,
-    ssrc            :number,
-    csrc            :number[],
+    version         :number,//2bit
+    padding         :number,//1bit
+    extension       :number,//1bit
+    csrcCount       :number,//4bit
+    marker          :number,//1bit
+    type            :number,//7bit
+    sequence        :number,//16bit
+    timestamp       :number,//32bit
+    ssrc            :number,//32bit
+    csrc            :number[],//0-15, each 32bit
     payload         :Buffer
 }
 export class MediaServer {
     static RTP_PORT = 18089;
     static RTCP_PORT = 18090;
+    static toBuffer(buf):Buffer{
+        var packet='';
+        var firstByte=(buf.version<<6 | buf.padding<<5 | buf.extension<<4 | buf.csrcCount<<3).toString(16);
+        var secondByte=(buf.marker<<7 | buf.type<<6).toString(16);
+        var sequence=Util.addZeros(buf.sequence,4);
+        var timestamp=Util.addZeros(parseInt(new Date().getTime().toString().substr(-9)),8);
+        //var timestamp=Util.addZeros(buf.timestamp,8);
+        var ssrc=Util.addZeros(Util.random(),8);
+        //var ssrc=Util.addZeros(buf.ssrc,8);
+        packet=packet.concat(firstByte,secondByte,sequence,timestamp,ssrc)
+        if(buf.csrc){
+            //TODO add csrc
+        }
+        packet+=buf.payload;
+        return new Buffer(packet,"hex");
+    }
     static parsePacket(buf:Buffer):RtpPacket{
         if (!Buffer.isBuffer(buf)) {
             throw new Error('buffer required');
@@ -28,6 +45,7 @@ export class MediaServer {
             version          : firstByte >> 6,
             padding          : (firstByte >> 5) & 1,
             extension        : (firstByte >> 4) & 1,
+            csrcCount        : csrcCount,
             marker           : secondByte >> 7,
             type             : secondByte & 0x7f,
             sequence         : buf.readUInt16BE(2),

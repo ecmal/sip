@@ -71,6 +71,13 @@ export class Util {
     static get udp():any{
         return require('dgram');
     }
+    static addZeros(num:number,size:number):string{
+        var s='';
+        for(var i=0;i<size;i++){
+            s+='0';
+        }
+        return (s+num.toString(16)).substr(-size);
+    }
     static random():number{
         return Math.round(Math.random()*0xFFFFFFFF)
     }
