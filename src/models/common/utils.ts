@@ -62,6 +62,7 @@ export class Util {
         });
 
     }
+
     static get crypto():any{
         return require('crypto');
     }
@@ -70,6 +71,9 @@ export class Util {
     }
     static get udp():any{
         return require('dgram');
+    }
+    static toUnsigned(n:number):number{
+        return ((n >>> 1) * 2 + (n & 1));
     }
     static addZeros(num:number,size:number):string{
         var s='';

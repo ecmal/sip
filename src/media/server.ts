@@ -1,6 +1,8 @@
 import {Util} from "../models/common/utils";
 import {Call} from "../dialogs/invitation/call";
 import {Sdp} from "../models/common/sdp";
+import {RtpPacket as NewRtpPacket} from "./rtp";
+import {RtcpPacket} from "./rtcp";
 
 export interface RtpPacket {
     version         :number,//2bit
@@ -15,6 +17,8 @@ export interface RtpPacket {
     csrc            :number[],//0-15, each 32bit
     payload         :Buffer
 }
+
+
 export class MediaServer {
 
     static RTP_PORT = 18089;
@@ -72,6 +76,7 @@ export class MediaServer {
     static talkTo(call:Call,sdp:Sdp){
         call.remoteSdp = sdp;
         console.info(sdp.connection.connectionAddress,sdp.audio.port);
+        console.info(sdp);
     }
     static toBuffer(buf):Buffer{
         var packet='';
@@ -141,6 +146,7 @@ export class MediaServer {
     public rtpPort:number;
     public rtcpPort:number;
     constructor(){
+        this.enabled = true;
         this.server = Util.udp.createSocket("udp4");
         this.rtcp = Util.udp.createSocket("udp4");
         var chunkCount = 0;
@@ -151,7 +157,8 @@ export class MediaServer {
         this.rtcp.on("message", (msg, rinfo)=>{
             if(this.debug) {
                 console.info('');
-                console.info(msg.toString('hex'));
+                var pack = new RtcpPacket(msg);
+                console.info(`RTCP : v:${pack.version} p:${pack.padding} t:${pack.type} c:${pack.packetLength} ${pack.ssrc} ${pack.startTime} ${pack.endTime} ${pack.timestamp} ${pack.senderPacketCount} ${pack.senderOctetCount}`);
             }
         });
         this.server.on("message", (msg, rinfo)=>{
@@ -159,8 +166,8 @@ export class MediaServer {
             chunkTotal += msg.length;
             chunkMin = Math.min(chunkMin,msg.length);
             chunkMax = Math.max(chunkMax,msg.length);
-            pack = MediaServer.parsePacket(msg);
-            if(last && (pack.ssrc!=last.ssrc||pack.extension!=last.extension||pack.marker!=last.marker||pack.csrc.length!=pack.csrc.length||pack.padding!=pack.padding)){
+            pack = new NewRtpPacket(msg);//MediaServer.parsePacket(msg);
+            if(last && (pack.ssrc!=last.ssrc||pack.extension!=last.extension||pack.marker!=last.marker||pack.csrcCount!=pack.csrcCount||pack.padding!=pack.padding)){
                 if(this.debug){
                     console.info('');
                 }
@@ -169,7 +176,7 @@ export class MediaServer {
                 last = pack;
             }
             if(this.debug) {
-                process.stdout.write(`\rMedia Received : v:${pack.version} t:${pack.type} e:${pack.extension} m:${pack.marker} p:${pack.padding} s:${pack.ssrc} t:${pack.timestamp} i:${pack.sequence} c:${pack.csrc.length} d:${pack.payload.length}`);
+                process.stdout.write(`\rRTP  : v:${pack.version} t:${pack.type} e:${pack.extension} m:${pack.marker} p:${pack.padding} s:${pack.ssrc} t:${pack.timestamp} i:${pack.sequence} c:${pack.csrcCount} d:${pack.payload.length}`);
             }
             if(this.enabled){
                 this.send(msg);
