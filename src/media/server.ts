@@ -113,11 +113,18 @@ export class MediaServer {
         //this.file = require('fs').createWriteStream('media.txt');
         this.rtcp.on("message", (msg:Buffer, rinfo)=>{
             //this.file.write(`RTCP ${rinfo.address} ${rinfo.port} ${msg.toString('hex')}\n`);
-            if(this.debug && false) {
+            if(this.debug) {
                 console.info('');
                 var len = RtcpPacket.getLength(msg);
                 while(len){
-                    console.info(`RTCP(${JSON.stringify(new RtcpPacket(msg.slice(0,len)),null,2)})`);
+                    var pkt = msg.slice(0,len);
+                    try{
+                        console.info(`RTCP(${JSON.stringify(new RtcpPacket(pkt),null,2)})`);
+                    }catch(ex){
+                        console.info(ex.stack);
+                        console.info('-- PACKET ------------');
+                        console.info(pkt.toString('hex'));
+                    }
                     if(len<msg.length){
                         msg = msg.slice(len);
                         len = RtcpPacket.getLength(msg)
