@@ -1,7 +1,6 @@
 import {Util} from "../models/common/utils";
 import {Call} from "../dialogs/invitation/call";
 import {Sdp} from "../models/common/sdp";
-
 export class RtcpPacket {
     static parse(buffer:Buffer){
         switch(RtcpPacket.getType(buffer)){
@@ -73,17 +72,31 @@ export class RtcpPacket {
         return new RtcpPacket(newBuffer);
     }
 }
+const REPORT_LENGTH=24;
+const SR_REPORT_START=28;
+const RR_REPORT_START=16;
+
 export class RtcpSRPacket extends RtcpPacket {
+    private static getReports(buffer:Buffer,rCount:number){
+        var reports=[];
+        for(var i=0;i<rCount;i++){
+            var buf;
+            buf=buffer.slice(SR_REPORT_START+i*REPORT_LENGTH,SR_REPORT_START+i*REPORT_LENGTH+REPORT_LENGTH);
+            reports.push(new RtcpReport(buf).toJSON());
+        }
+        return reports;
+    }
     constructor(options){
         super(options)
+        this.reports = RtcpSRPacket.getReports(this.buffer,this.reportsCount);
     }
-    public get reportCount():number{
-        return (this.buffer[0] & 0x7F);
+    public reports:RtcpReport[];
+    public get reportsCount(){
+        return this.buffer[0] & 0x1F;
     }
-    public set reportCount(val:number){
-        val = Util.toUnsigned(val);
-        if (val <= 15) {
-            this.buffer[0] &= 0xF0;
+    public set reportsCount(val:number){
+        if (val <= 31) {
+            this.buffer[0] &= 0xe0;
             this.buffer[0] |= val;
         }
     }
@@ -100,10 +113,10 @@ export class RtcpSRPacket extends RtcpPacket {
         this.buffer.writeInt32BE(val,8);
     }
     public get endTime():number{
-        return this.buffer.readUInt32BE(16);
+        return this.buffer.readUInt32BE(12);
     }
     public set endTime(val:number){
-        this.buffer.writeInt32BE(val,16);
+        this.buffer.writeInt32BE(val,12);
     }
     public get timestamp():number{
         return this.buffer.readUInt32BE(16);
@@ -126,6 +139,8 @@ export class RtcpSRPacket extends RtcpPacket {
     public toJSON(){
         return {
             version             : this.version,
+            padding             : this.padding,
+            reportsCount        : this.reportsCount,
             type                : this.type,
             length              : this.length,
             source              : this.source,
@@ -133,14 +148,109 @@ export class RtcpSRPacket extends RtcpPacket {
             endTime             : this.endTime,
             timestamp           : this.timestamp,
             senderPacketCount   : this.senderPacketCount,
-            senderOctetCount    : this.senderOctetCount
+            senderOctetCount    : this.senderOctetCount,
+            reports             : RtcpSRPacket.getReports(this.buffer,this.reportsCount)
         }
     }
 
 }
 export class RtcpRRPacket extends RtcpPacket {
+    private static getReports(buffer:Buffer,rCount:number){
+        var reports=[];
+        for(var i=0;i<rCount;i++){
+            var buf;
+            buf=buffer.slice(RR_REPORT_START+i*REPORT_LENGTH,RR_REPORT_START+i*REPORT_LENGTH+REPORT_LENGTH);
+            reports.push(new RtcpReport(buf).toJSON());
+        }
+        return reports;
+    }
     constructor(options){
         super(options)
+    }
+    public get reportsCount(){
+        return this.buffer[0] & 0x1F;
+    }
+    public set reportsCount(val:number){
+        if (val <= 31) {
+            this.buffer[0] &= 0xe0;
+            this.buffer[0] |= val;
+        }
+    }
+    public get source():number{
+        return this.buffer.readUInt32BE(4);
+    }
+    public set source(val:number){
+        this.buffer.writeInt32BE(val,4);
+    }
+
+    public toJSON(){
+        return {
+            version             : this.version,
+            type                : this.type,
+            length              : this.length,
+            source              : this.source,
+            reports             : RtcpRRPacket.getReports(this.buffer,this.reportsCount)
+        }
+    }
+}
+export class RtcpReport {
+    public buffer:Buffer;
+
+    constructor(buffer:Buffer) {
+        this.buffer=buffer;
+    }
+    public get source():number {
+        return this.buffer.readUInt32BE(0);
+    }
+    public set source(val:number) {
+        this.buffer.writeInt32BE(val, 0);
+    }
+    public get lostFraction():number {
+        return this.buffer.readUInt8(4);
+    }
+    public set lostFraction(val:number) {
+        this.buffer.writeInt8(val, 4);
+    }
+    public get lostCount():number {
+        return this.buffer.readUIntBE(5,3);
+    }
+    public set lostCount(val:number) {
+        this.buffer.writeIntBE(val,5,3);
+    }
+    public get highestSequence():number {
+        return this.buffer.readUInt32BE(8);
+    }
+    public set highestSequence(val:number) {
+        this.buffer.writeInt32BE(val, 8);
+    }
+    public get jitter():number {
+        return this.buffer.readUInt32BE(12);
+    }
+    public set jitter(val:number) {
+        this.buffer.writeInt32BE(val, 12);
+    }
+    public get LSR():number {
+        return this.buffer.readUInt32BE(16);
+    }
+    public set LSR(val:number) {
+        this.buffer.writeInt32BE(val, 16);
+    }
+    public get DLSR():number {
+        return this.buffer.readUInt32BE(20);
+    }
+    public set DLSR(val:number) {
+        this.buffer.writeInt32BE(val, 20);
+    }
+    public toJSON(){
+        return {
+            source           : this.source,
+            lostFraction     : this.lostFraction,
+            lostCount        : this.lostCount,
+            highestSequence  : this.highestSequence,
+            jitter           : this.jitter,
+            LSR              : this.LSR,
+            DLSR             : this.DLSR
+        }
     }
 }
 export class RtcpSDPacket extends RtcpPacket {
