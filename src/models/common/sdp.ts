@@ -225,7 +225,7 @@ function formatSdpSection(section, excluded, order) {
 export interface SdpOrigin {
     username:string;
     sessionId:string;
-    sessionVersion:string;
+    sessionVersion:number;
     networkType:string;
     addressType:string;
     unicastAddress:string;
@@ -281,7 +281,7 @@ export class Sdp extends Model {
     }
     
     public static format(sdp) {
-        return formatSdpSection(sdp, null, OUTPUT_ORDER);
+        return formatSdpSection(sdp, ['audio'], OUTPUT_ORDER);
     }
     
     constructor(data?){

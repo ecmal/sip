@@ -1,6 +1,6 @@
 import {Contact} from "../../models/common/contact";
 import {Call} from "./call";
-import {Station} from "../../station/station";
+import {Station} from "../../station";
 import {InviteDialog} from "./dialog";
 import {Request} from "../../models/message/request";
 import {IncomingInviteDialog} from "./incoming";

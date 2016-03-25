@@ -2,91 +2,100 @@ import {Util} from "../models/common/utils";
 import {Call} from "../dialogs/invitation/call";
 import {Sdp} from "../models/common/sdp";
 
+
+
+/**
+ *  0               1               2               3
+ *  0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |V=2|P|X|  CC   |M|     PT      |       sequence number         |
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |                           timestamp                           |
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |           synchronization source (SSRC) identifier            |
+ * +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
+ * |            contributing source (CSRC) identifiers             |
+ * |                             ....                              |
+ * +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |      defined by profile       |           length              |
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |                        header extension                       |
+ * |                             ....                              |
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *                              payload
+ *                               ....
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * @author <a href="http://bruno.biasedbit.com/">Bruno de Carvalho</a>
+ */
 export class RtpPacket {
+    private static getPayloadType(buffer:Buffer):number{
+        return buffer[1] & 0x7F;
+    }
+    private static hasExtension(buffer:Buffer):boolean{
+        return !!(buffer[0] >>> 4 & 1);
+    }
+    private static getExtensionType(buffer:Buffer){
+        var count = RtpPacket.getExtensionCount(buffer);
+        if(count>0){
+            return (count+1)*4;
+        }else{
+            return 0;
+        }
+    }
+    private static getExtensionCount(buffer:Buffer){
+        if(RtpPacket.hasExtension(buffer)){
+            return buffer[14] << 8 & buffer[15];
+        }else{
+            return 0;
+        }
+    }
+    private static getExtensionLength(buffer:Buffer){
+        var count = RtpPacket.getExtensionCount(buffer);
+        if(count>0){
+            return (count+1)*4;
+        }else{
+            return 0;
+        }
+    }
+    private static getSourcesCount(buffer:Buffer){
+        return buffer[0] & 0x0F;
+    }
+    private static getSourcesLength(buffer:Buffer){
+        return RtpPacket.getSourcesCount(buffer)*4;
+    }
+    private static getHeaderLength(buffer:Buffer){
+        //fixed length
+        var len = 12;
+        //csrc length
+        len += RtpPacket.getSourcesLength(buffer);
+        //extensional length
+        len += RtpPacket.getExtensionLength(buffer);
+        return len;
+    }
+
     constructor (options) {
         this.buffer = null;
         if(options instanceof Buffer){
-            this.buffer=options;
+            this.buffer = options;
             return;
-        }
-
-        var opts = options ? options : {};
-
-        var V = opts.V ? opts.V : 2, // version. always 2 for this RFC (2 bits)
-            P = opts.P ? opts.P : 0, // padding. not supported yet, so always 0 (1 bit)
-            X = opts.X ? opts.X : 0, // header extension (1 bit)
-            CC = opts.CC ? opts.CC : 0, // CSRC count (4 bits)
-            M = opts.M ? opts.M : 0, // marker (1 bit)
-            PT = opts.PT ? opts.PT : 0, // payload type. see section 6 in RFC3551 for valid types: http://www.ietf.org/rfc/rfc3551.txt (7 bits)
-            sequenceNumber = opts.sequenceNumber ? opts.sequenceNumber : Math.floor(Math.random() * 1000), // sequence number. SHOULD be random (16 bits)
-            timestamp = opts.timestamp ? opts.timestamp : Math.floor(Math.random() * 1000), // timestamp in the format of NTP (# sec. since 0h UTC 1 January 1900)? (32 bits)
-            SSRC = opts.SSRC ? opts.SSRC : Math.floor(Math.random()*4294967296), // synchronization source (32 bits)
-            CSRC = opts.CSRC ? opts.CSRC : [], // contributing sources list. not supported yet (32 bits)
-            defByProfile = opts.defByProfile ? opts.defByProfile : 0, // header extension, 'Defined By Profile'. not supported yet (16 bits)
-            extensionLength = opts.extensionLength ? opts.extensionLength : -1, // header extension length. default -1 make (extension+1)*4 equal 0 (16 bits)
-            payload=opts.payload?opts.payload:null;
-
-        var lengthOfHeader =
-                12 +
-                (extensionLength + 1) * 4 +
-                (CC) * 4, //totalLength of header
-            lengthOfPayload=0,
-            buffersList = [];
-
-        //fixed header
-        var header = new Buffer(12);
-        header[0] = (V << 6 | P << 5 | X << 4 | CC);
-        header[1] = (M << 7 | PT);
-        header[2] = (sequenceNumber >>> 8);
-        header[3] = (sequenceNumber & 0xFF);
-        header[4] = (timestamp >>> 24);
-        header[5] = (timestamp >>> 16 & 0xFF);
-        header[6] = (timestamp >>> 8 & 0xFF);
-        header[7] = (timestamp & 0xFF);
-        header[8] = (SSRC >>> 24);
-        header[9] = (SSRC >>> 16 & 0xFF);
-        header[10] = (SSRC >>> 8 & 0xFF);
-        header[11] = (SSRC & 0xFF);
-
-        buffersList.push(header);
-
-        //extensional header
-        if (X === 1) {
-            var extension = new Buffer((extensionLength + 1) * 4);
-            extension[0] = (defByProfile >>> 8 & 0xFF);
-            extension[1] = (defByProfile & 0xFF);
-            extension[2] = (extensionLength >>> 8 & 0xFF);
-            extension[3] = (extensionLength & 0xFF);
-
-            for (var i = 0; i < extensionLength; i++) {
-                //do something
-            }
-
-            buffersList.push(extension);
-        }
-
-        //CSRC
-        if (CC > 0) {
-            var CSRClength = CC * 4;
-            var CSRClist = new Buffer(CSRClength);
-
-            for (var i = 0; i < CC; i++) {
-                //do something
-                var CSRCitem = CSRC[i] ? CSRC[i] : 0;
-                CSRClist[i] = (CSRCitem >>> 24);
-                CSRClist[i + 1] = (CSRCitem >>> 16 & 0xFF);
-                CSRClist[i + 2] = (CSRCitem >>> 8 & 0xFF);
-                CSRClist[i + 3] = (CSRCitem & 0xFF);
-            }
-
-            buffersList.push(CSRClist);
-        }
-
-        if(payload){
-
-            lengthOfPayload=payload.length;
-
-            buffersList.push(payload);
+        }else
+        if(typeof options=='object'){
+            var sCount     = options.sources?options.sources.length:0;
+            var eCount     = options.extension?Math.ceil(options.extension.data.length/4):0;
+            var pLen       = options.data?options.data.length:0;
+            this.buffer    = new Buffer(12-sCount*4+(eCount>0?(eCount*4+4):0)+pLen);
+            this.buffer.fill(0);
+            this.version   = options.version||2;
+            this.padding   = options.padding||false;
+            this.marker    = options.marker||false;
+            this.type      = options.type||0;
+            this.sequence  = options.sequence||0;
+            this.timestamp = options.timestamp||0;
+            this.source    = options.source||Math.round(Math.random()*0xFFFFFFFF);
+            this.sources   = options.sources||[];
+            this.extension = options.extension||null;
+            this.data      = options.data||new Buffer(0);
         }
     }
     public buffer:Buffer;
@@ -94,127 +103,131 @@ export class RtpPacket {
         return this.buffer[0] >> 6;
     }
     public set version(val:number){
+        this.buffer[0] &= 0x3f;
         this.buffer[0] |= (val << 6);
     }
-    public get padding():number{
-        return (this.buffer[0] >> 5) & 1
+    public get padding():boolean{
+        return (this.buffer[0] & 0x20)==0x20;
     }
-    public set padding(val:number){
-        this.buffer[0] |= ((val&1) << 5);
-    }
-    public get extension():number{
-        return (this.buffer[0] >>> 4 & 1);
-    }
-    public set extension(val:number){
-        this.buffer[0] |= ((val<<4)|0xEF);
-    }
-    public get marker():number{
-        return (this.buffer[1] >>> 7);
-    }
-    public set marker(val:number){
-        this.buffer[1] |= ((val<<7)|0x7F);
-    }
-
-    public get extensionLength():number{
-        if (this.extension) {
-            return (this.buffer[14] << 8 & this.buffer[15]);
-        } else {
-            return 0;
+    public set padding(val:boolean){
+        if(val){
+            this.buffer[0] |= 0x20;
+        }else{
+            this.buffer[0] &= 0xdf;
         }
     }
-    public get headerLength():number{
-        //fixed length
-        var len = 12;
-
-        //extensional length
-        var extensionLength = this.extensionLength;
-        if (extensionLength !== 0) {
-            len += (extensionLength + 1);
-        }
-
-        //CSRC counts
-        len += this.csrcCount;
-
-        //return
-        return len;
+    public get marker():boolean{
+        return (this.buffer[1] & 0x80)==0x80;
     }
-    public get csrcCount():number{
-        return (this.buffer[0] & 0x0F);
-    }
-    public set csrcCount(val:number){
-        val = Util.toUnsigned(val);
-        if (val <= 15) {
-            this.buffer[0] &= 0xF0;
-            this.buffer[0] |= val;
+    public set marker(val:boolean){
+        if(val){
+            this.buffer[1] |= 0x80;
+        }else{
+            this.buffer[1] &= 0x7F;
         }
     }
 
+    public get sequence():number{
+        return this.buffer.readUInt16BE(2);
+    }
+    public set sequence(val:number){
+        this.buffer.writeInt16BE(val,2);
+    }
+    public get timestamp():number{
+        return (this.buffer.readUInt32BE(4));
+    }
+    public set timestamp(val:number){
+        this.buffer.writeUInt32BE(val,4);
+    }
 
+    //contributing sources
+    public get sources():number[]{
+        var csrcCount = RtpPacket.getSourcesCount(this.buffer);
+        var csrcList = [];
+        for (var i = 0; i < csrcCount; i++) {
+            csrcList.push(this.buffer.readUInt32BE(12 + 4 * i));
+        }
+        return csrcList;
+    }
+    public set sources(val:number[]){
+        var count = val.length;
+        this.buffer[0] &= (count | 0xF0);
+        if(count>0){
+            throw new Error('todo sources')
+        }
+    }
+
+    //synchronization source
+    public get source():number{
+        return this.buffer.readUInt32BE(8);
+    }
+    public set source(val:number){
+        this.buffer.writeInt32BE(val,8);
+    }
 
     public get type():number{
-        return (this.buffer[1] & 0x7F);
+        return RtpPacket.getPayloadType(this.buffer);
     }
     public set type(val:number){
-        val = Util.toUnsigned(val);
         if (val <= 127) {
             this.buffer[1] &= 0x80;
             this.buffer[1] |= val;
         }
     }
-    public get sequence():number{
-        return this.buffer.readUInt16BE(2);
+
+    public get data():Buffer{
+        return this.buffer.slice(RtpPacket.getHeaderLength(this.buffer), this.buffer.length);
     }
-    public set sequence(val:number){
-        val = Util.toUnsigned(val);
-        if (val <= 65535) {
-            this.buffer[2] = (val >>> 8);
-            this.buffer[3] = (val & 0xFF);
-        }
-    }
-    public get timestamp():number{
-        return this.buffer.readUInt32BE(4);
-    }
-    public set timestamp(val:number){
-        val = Util.toUnsigned(val);
-        if (val <= 4294967295) {
-            this.buffer[4] = (val >>> 24);
-            this.buffer[5] = (val >>> 16 & 0xFF);
-            this.buffer[6] = (val >>> 8 & 0xFF);
-            this.buffer[7] = (val & 0xFF);
-        }
-    }
-    public get csrc():number[]{
-        var csrcCount = this.buffer[0] & 0x0f;
-        var csrcList = [];
-        for (var i = 0; i < csrcCount; i++) {
-            csrcList.push(this.buffer.readUInt32BE(9 + 4 * i));
-        }
-        return csrcList;
-    }
-    public get ssrc():number{
-        return this.buffer.readUInt32BE(8);
-    }
-    public set ssrc(val:number){
-        this.buffer.writeInt32BE(val,8);
-    }
-    public get payload():Buffer{
-        return (this.buffer.slice(this.headerLength, this.buffer.length));
-    }
-    public set payload(val:Buffer){
-        if (Buffer.isBuffer(val) && val.length <= 512) {
-            var lengthOfHeader = this.headerLength;
-            var newLength = this.headerLength + val.length;
-            if (this.buffer.length == newLength) {
-                val.copy(this.buffer, lengthOfHeader, 0);
-            } else {
-                var newbuf = new Buffer(newLength);
-                this.buffer.copy(newbuf, 0, 0, lengthOfHeader);
-                val.copy(newbuf, lengthOfHeader, 0);
-                this.buffer = newbuf;
-            }
+    public set data(val:Buffer){
+        var hLen = RtpPacket.getHeaderLength(this.buffer);
+        var oLen = this.buffer.length-hLen;
+        var nLen = val.length;
+        if(oLen==nLen){
+            val.copy(this.buffer,hLen,0,nLen);
+        }else {
+            this.buffer = Buffer.concat([this.buffer.slice(0,hLen),val],nLen+oLen);
         }
     }
 
+    public get extension():any{
+        var eCount = RtpPacket.getExtensionCount(this.buffer);
+        if(eCount>0){
+            var sCount  = RtpPacket.getSourcesCount(this.buffer);
+            var eOffset = 12+sCount*4;
+            var eType   = this.buffer.readInt16BE(eOffset);
+            var eData   = this.buffer.slice(eOffset+4,eOffset+4+eCount*4);
+            return {
+                count : eCount,
+                type  : eType,
+                data  : eData
+            }
+        }else{
+            return null;
+        }
+    }
+    public set extension(val:any){
+        if(!val){
+            this.buffer[0] &= 0xef;
+        }else{
+            throw new Error('todo sources')
+        }
+    }
+
+
+    public toJSON(){
+        return {
+            version     : this.version,
+            padding     : this.padding,
+            marker      : this.marker,
+            type        : this.type,
+            sequence    : this.sequence,
+            timestamp   : this.timestamp,
+            source      : this.source,
+            sources     : this.sources,
+            extension   : this.extension,
+            data        : this.data
+        }
+    }
     public copy(){
         var newBuffer = new Buffer(this.buffer.length);
         this.buffer.copy(newBuffer);

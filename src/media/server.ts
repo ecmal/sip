@@ -1,36 +1,31 @@
 import {Util} from "../models/common/utils";
 import {Call} from "../dialogs/invitation/call";
 import {Sdp} from "../models/common/sdp";
-import {RtpPacket as NewRtpPacket} from "./rtp";
+import {RtpPacket} from "./rtp";
 import {RtcpPacket} from "./rtcp";
 
-export interface RtpPacket {
-    version         :number,//2bit
-    padding         :number,//1bit
-    extension       :number,//1bit
-    csrcCount       :number,//4bit
-    marker          :number,//1bit
-    type            :number,//7bit
-    sequence        :number,//16bit
-    timestamp       :number,//32bit
-    ssrc            :number,//32bit
-    csrc            :number[],//0-15, each 32bit
-    payload         :Buffer
-}
-
-
 export class MediaServer {
-
+    static calls:{[k:string]:Call} = Object.create(null);
     static RTP_PORT = 18089;
     static RTCP_PORT = 18090;
 
     static listenTo(call:Call){
+        call.on("audio:start",(port,host)=>{
+            MediaServer.calls[`${host}:${port}`] = call;
+        });
+        call.on("audio:stop",(port,host,nPort,nHost)=>{
+            delete MediaServer.calls[`${host}:${port}`];
+        });
+        call.on("audio:update",(port,host,oPort,oHost)=>{
+            delete MediaServer.calls[`${oPort}:${oPort}`];
+            MediaServer.calls[`${host}:${port}`] = call;
+        });
         return call.localSdp = new Sdp({
             version             : 0,
             origin              : {
                 username        : call.localUsername,
-                sessionId       : Util.random(),
-                sessionVersion  : Util.random(),
+                sessionId       : Util.random()&0xFFFFFF,
+                sessionVersion  : Util.random()&0xFFFFFF,
                 networkType     : "IN",
                 addressType     : "IP4",
                 unicastAddress  : this.instance.host
@@ -57,16 +52,6 @@ export class MediaServer {
                                 "codec": "PCMU",
                                 "rate": 8000
                             }
-                        },
-                        {
-                            "id": 101,
-                            "rtp": {
-                                "codec": "telephone-event",
-                                "rate": 8000
-                            },
-                            "fmtp": {
-                                "params": "0-15"
-                            }
                         }
                     ]
                 }
@@ -74,115 +59,86 @@ export class MediaServer {
         });
     }
     static talkTo(call:Call,sdp:Sdp){
-        call.remoteSdp = sdp;
-        console.info(sdp.connection.connectionAddress,sdp.audio.port);
-        console.info(sdp);
+        var newHost = sdp.connection.connectionAddress;
+        var newPort = sdp.audio.port;
+        var newAddr = `${newHost}:${newPort}`;
+        if(!call.remoteSdp){
+            call.remoteSdp = sdp;
+            call.emit("audio:start",newPort,newHost);
+
+        }else{
+            var oldHost = call.remoteSdp.connection.connectionAddress;
+            var oldPort = call.remoteSdp.audio.port;
+            var oldAddr = `${oldHost}:${oldPort}`;
+            call.remoteSdp = sdp;
+            if(oldAddr!=newAddr){
+                if(newHost=='0.0.0.0'||!newPort){
+                    call.emit("audio:stop",oldPort,oldHost,newPort,newHost);
+                }else{
+                    call.emit("audio:update",newPort,newHost,oldPort,oldHost);
+                }
+            }
+        }
     }
-    static toBuffer(buf):Buffer{
-        var packet='';
-        var firstByte=(buf.version<<6 | buf.padding<<5 | buf.extension<<4 | buf.csrcCount<<3).toString(16);
-        var secondByte=(buf.marker<<7 | buf.type<<6).toString(16);
-        var sequence=Util.addZeros(buf.sequence,4);
-        var timestamp=Util.addZeros(parseInt(new Date().getTime().toString().substr(-9)),8);
-        //var timestamp=Util.addZeros(buf.timestamp,8);
-        var ssrc=Util.addZeros(Util.random(),8);
-        //var ssrc=Util.addZeros(buf.ssrc,8);
-        packet=packet.concat(firstByte,secondByte,sequence,timestamp,ssrc)
-        if(buf.csrc){
-            //TODO add csrc
-        }
-        packet+=buf.payload;
-        return new Buffer(packet,"hex");
-    }
-    static parsePacket(buf:Buffer):RtpPacket{
-        if (!Buffer.isBuffer(buf)) {
-            throw new Error('buffer required');
-        }
-        if (buf.length < 12) {
-            throw new Error('can not parse buffer smaller than fixed header');
-        }
-        var firstByte = buf.readUInt8(0);
-        var secondByte = buf.readUInt8(1);
-        var csrcCount = firstByte & 0x0f;
-        var parsed:RtpPacket = {
-            version          : firstByte >> 6,
-            padding          : (firstByte >> 5) & 1,
-            extension        : (firstByte >> 4) & 1,
-            csrcCount        : csrcCount,
-            marker           : secondByte >> 7,
-            type             : secondByte & 0x7f,
-            sequence         : buf.readUInt16BE(2),
-            timestamp        : buf.readUInt32BE(4),
-            ssrc             : buf.readUInt32BE(8),
-            csrc             : [],
-            payload          : null
-        };
-        for (var i = 0; i < csrcCount; i++) {
-            parsed.csrc.push(buf.readUInt32BE(9 + 4 * i));
-        }
-        parsed.payload = buf.slice(12 + 4 * csrcCount);
-        return parsed;
-    }
-    static get instance(){
+
+    static get instance():MediaServer{
         return Object.defineProperty(this,'instance',<any>{
             value:new MediaServer()
         }).instance
     }
-    private server:any;
+    private rtp:any;
     private rtcp:any;
     private client:any;
 
-    public remotePort:number;
-    public remoteAddress:string;
+
     public packet:RtpPacket;
     public enabled:boolean;
     private get debug(){
         return true;
     }
-    send(message?:Buffer){
-        this.server.send(message,0,message.length,this.remotePort,this.remoteAddress);
+    send(message:Buffer,port:number,host:string){
+        this.rtp.send(message,0,message.length,port,host);
     }
     public host:string;
     public rtpPort:number;
     public rtcpPort:number;
-    constructor(){
-        this.enabled = true;
-        this.server = Util.udp.createSocket("udp4");
-        this.rtcp = Util.udp.createSocket("udp4");
-        var chunkCount = 0;
-        var chunkTotal = 0;
-        var chunkMax = 0;
-        var chunkMin = Number.MAX_SAFE_INTEGER;
-        var pack:RtpPacket,last:RtpPacket;
-        this.rtcp.on("message", (msg, rinfo)=>{
-            if(this.debug) {
-                console.info('');
-                var pack = new RtcpPacket(msg);
-                console.info(`RTCP : v:${pack.version} p:${pack.padding} t:${pack.type} c:${pack.packetLength} ${pack.ssrc} ${pack.startTime} ${pack.endTime} ${pack.timestamp} ${pack.senderPacketCount} ${pack.senderOctetCount}`);
-            }
-        });
-        this.server.on("message", (msg, rinfo)=>{
-            chunkCount ++;
-            chunkTotal += msg.length;
-            chunkMin = Math.min(chunkMin,msg.length);
-            chunkMax = Math.max(chunkMax,msg.length);
-            pack = new NewRtpPacket(msg);//MediaServer.parsePacket(msg);
-            if(last && (pack.ssrc!=last.ssrc||pack.extension!=last.extension||pack.marker!=last.marker||pack.csrcCount!=pack.csrcCount||pack.padding!=pack.padding)){
-                if(this.debug){
-                    console.info('');
-                }
-                last = pack;
-            }else{
-                last = pack;
-            }
-            if(this.debug) {
-                process.stdout.write(`\rRTP  : v:${pack.version} t:${pack.type} e:${pack.extension} m:${pack.marker} p:${pack.padding} s:${pack.ssrc} t:${pack.timestamp} i:${pack.sequence} c:${pack.csrcCount} d:${pack.payload.length}`);
-            }
-            if(this.enabled){
-                this.send(msg);
-            }
-        });
+    public file:any;
 
+
+    constructor(){
+        this.enabled = false;
+        this.rtp = Util.udp.createSocket("udp4");
+        this.rtcp = Util.udp.createSocket("udp4");
+        var call:Call,pack:RtpPacket;
+        //this.file = require('fs').createWriteStream('media.txt');
+        this.rtcp.on("message", (msg:Buffer, rinfo)=>{
+            //this.file.write(`RTCP ${rinfo.address} ${rinfo.port} ${msg.toString('hex')}\n`);
+            if(this.debug && false) {
+                console.info('');
+                var len = RtcpPacket.getLength(msg);
+                while(len){
+                    console.info(`RTCP(${JSON.stringify(new RtcpPacket(msg.slice(0,len)),null,2)})`);
+                    if(len<msg.length){
+                        msg = msg.slice(len);
+                        len = RtcpPacket.getLength(msg)
+                    }else{
+                        len = 0;
+                    }
+                }
+
+            }
+        });
+        this.rtp.on("message", (msg, rinfo)=>{
+            //this.file.write(`RTP  ${rinfo.address} ${rinfo.port} ${msg.toString('hex')}\n`);
+            var id = `${rinfo.address}:${rinfo.port}`;
+            if(call=MediaServer.calls[id]){
+                pack = new RtpPacket(msg);
+                call.emit(Call.EVENTS.AUDIO.RECEIVE,pack);
+                if(this.debug && false){
+                    process.stdout.write(`\rRTP  : c:${call.id} m:${pack.marker} t:${pack.type} s:${pack.source} i:${pack.sequence} t:${pack.timestamp} d:${pack.data.length}`);
+                }
+            }
+        });
     }
 
     public listen(host?:string,rtpPort?:number,rtcpPort?:number):Promise<any>{
@@ -191,7 +147,7 @@ export class MediaServer {
             this.host = host;
             this.rtpPort = rtpPort  = rtpPort||MediaServer.RTP_PORT;
             this.rtcpPort = rtcpPort = rtcpPort||(rtpPort+1);
-            this.server.bind(rtpPort,host);
+            this.rtp.bind(rtpPort,host);
             this.rtcp.bind(rtcpPort,host);
             console.info(`LISTENING RTP:${rtpPort} / RCTP:${rtcpPort}`);
         });

@@ -1,11 +1,12 @@
 import {Call, CallState, CallDirection} from "./call";
-import {Station} from "../../station/station";
+import {Station} from "../../station";
 import {Request} from "../../models/message/request";
 import {Response} from "../../models/message/response";
 import {MediaServer} from "../../media/server";
 import {InviteDialog} from "./dialog";
 import {Sequence} from "../../models/common/sequence";
 import {Mime} from "../../models/common/mime";
+import {Sdp} from "../../models/common/sdp";
 
 export class OutgoingInviteDialog extends InviteDialog {
 
@@ -30,12 +31,8 @@ export class OutgoingInviteDialog extends InviteDialog {
         } else
         if(message.status == 200){
             if(message.sequence.method=="INVITE"){
+                MediaServer.talkTo(this.call,new Sdp(message.content));
                 this.call.emit('accept');
-                var sdp = message.content.toString();
-                //this.media.remotePort = parseInt(sdp.match(/m=audio\s+(\d+)/)[1]);
-                //this.media.remoteAddress = sdp.match(/c=IN\s+IP4\s+(\d+\.\d+.\d+\.\d+)/)[1];
-                //this.media.enabled = true;
-                //console.info(`Send Media To ${this.media.remoteAddress}:${this.media.remotePort}`);
                 this.sendAck(message);
             }
         } else {
@@ -58,12 +55,18 @@ export class OutgoingInviteDialog extends InviteDialog {
         }
     }
     protected onAck(request:Request){
+        if(request.contentLength>0) {
+            MediaServer.talkTo(this.call,new Sdp(request.content));
+        }
         //console.info("GOT ACK");
     }
     protected onBye(request:Request){
         this.sendByeAccept(request)
     }
     protected onInvite(request:Request){
+        if(request.contentLength>0) {
+            MediaServer.talkTo(this.call,new Sdp(request.content));
+        }
         this.sendInviteAccept(request);
     }
     protected onCancel(request:Request){
@@ -151,11 +154,7 @@ export class OutgoingInviteDialog extends InviteDialog {
             supported       : ['outbound', 'replaces', 'join'],
             maxForwards     : 70,
             contentType     : Mime.SDP,
-            content         : InviteDialog.getSdp(
-                this.station.contact.uri.username,
-                this.station.transport.localAddress,
-                MediaServer.RTP_PORT
-            )
+            content         : new Buffer(MediaServer.listenTo(this.call).toString())
         }))
     }
     protected sendInviteAccept(message:Request){
@@ -172,11 +171,7 @@ export class OutgoingInviteDialog extends InviteDialog {
                 type        : 'application',
                 subtype     : 'sdp'
             }),
-            content     : InviteDialog.getSdp(
-                this.station.contact.uri.username,
-                this.station.transport.localAddress,
-                MediaServer.RTP_PORT
-            )
+            content     : new Buffer(this.call.localSdp.toString())
         });
         this.station.transport.send(response);
     }
@@ -191,6 +186,17 @@ export class OutgoingInviteDialog extends InviteDialog {
         this.sendInvite();
     }
     protected done(){
+        if(this.call.remoteSdp) {
+            var sdp = this.call.remoteSdp;
+            delete this.call.remoteSdp;
+            delete this.call.localSdp;
+            this.call.emit(Call.EVENTS.AUDIO.STOP,
+                sdp.audio.port,
+                sdp.connection.connectionAddress,
+                0,
+                '0.0.0.0'
+            );
+        }
         this.station.transport.off(`response:${this.call.id}`,this.onResponse);
         this.station.transport.off(`request:${this.call.id}`,this.onRequest);
         this.call.emit('done');

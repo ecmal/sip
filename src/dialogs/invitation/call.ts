@@ -14,7 +14,17 @@ export enum CallDirection {
     INCOMING,
     OUTGOING
 }
+
 export class Call extends Emitter {
+    static EVENTS = {
+        AUDIO       : {
+            SENT    : "audio:send",
+            RECEIVE : "audio:receive",
+            START   : "audio:start",
+            STOP    : "audio:stop",
+            UPDATE  : "audio:update"
+        }
+    };
 
     public id:string;
     public direction:CallDirection;

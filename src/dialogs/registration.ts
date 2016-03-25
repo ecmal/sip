@@ -80,7 +80,7 @@ export class RegisterDialog {
     }
 
     register(expires){
-        this.doRegister(expires);
+        this.doRegister(expires).then(r=>this.station.emit('register'));
     }
     doRegister(expires){
         return new RegisterRequest(this.contact,expires).send(this.station.transport);

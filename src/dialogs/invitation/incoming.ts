@@ -1,5 +1,5 @@
 import {Call, CallState, CallDirection} from "./call";
-import {Station} from "../../station/station";
+import {Station} from "../../station";
 import {Request} from "../../models/message/request";
 import {Response} from "../../models/message/response";
 import {MediaServer} from "../../media/server";
@@ -174,11 +174,7 @@ export class IncomingInviteDialog extends InviteDialog {
             sequence    : message.sequence,
             callId      : message.callId,
             contentType : Mime.SDP,
-            content     : new Buffer(MediaServer.listenTo(this.call).toString())/*InviteDialog.getSdp(
-                this.station.contact.uri.username,
-                this.station.transport.localAddress,
-                MediaServer.RTP_PORT
-            )*/
+            content     : new Buffer(MediaServer.listenTo(this.call).toString())
         });
         this.emit('accept');
         this.station.transport.send(response);
@@ -225,11 +221,8 @@ export class IncomingInviteDialog extends InviteDialog {
     }
 
     protected init(request:Request){
-
         this.station.transport.on(`response:${this.call.id}`,this.onResponse);
         this.station.transport.on(`request:${this.call.id}`,this.onRequest);
-
-
         var onTake = ()=>{
             this.call.off('take',onTake);
             this.call.off('drop',onDrop);
@@ -253,6 +246,17 @@ export class IncomingInviteDialog extends InviteDialog {
     }
     protected done(){
         this.call.off('drop');
+        if(this.call.remoteSdp){
+            var sdp = this.call.remoteSdp;
+            delete this.call.remoteSdp;
+            delete this.call.localSdp;
+            this.call.emit(Call.EVENTS.AUDIO.STOP,
+                sdp.audio.port,
+                sdp.connection.connectionAddress,
+                0,
+                '0.0.0.0'
+            );
+        }
         this.station.transport.off(`response:${this.call.id}`,this.onResponse);
         this.station.transport.off(`request:${this.call.id}`,this.onRequest);
         this.emit('done');

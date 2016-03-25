@@ -62,7 +62,9 @@ export class Util {
         });
 
     }
-
+    static get fs():any{
+        return require('fs');
+    }
     static get crypto():any{
         return require('crypto');
     }
