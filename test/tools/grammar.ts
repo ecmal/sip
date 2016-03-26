@@ -3,9 +3,10 @@ import * as PT from "node/path";
 
 const PEG   = require('pegjs');
 
-const grammarDir = PT.resolve('../peg');
-const outputPath = PT.resolve('./sip/grammar.js');
-
+const grammarDir = PT.resolve(process.argv[2]||'../peg');
+const outputPath = PT.resolve(process.argv[3]||'./sip','grammar.js');
+console.info("GrammarDir :",grammarDir);
+console.info("OutputPath :",outputPath);
 
 class Compiler {
     static run():Compiler {

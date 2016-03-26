@@ -30,16 +30,15 @@ export class Station extends Emitter {
         return this.transport.connected
     }
 
-    private get isOffline():boolean{
+    public get isOffline():boolean{
         return this.state == State.OFFLINE;
     }
-    private get isRegistered():boolean{
+    public get isRegistered():boolean{
         return !(this.state==State.OFFLINE || this.state == State.REGISTERING);
     }
     public get name(){
         return this.contact.displayName;
     }
-
     constructor(contact:Contact|string, transport?:Transport) {
         super();
         this.state = State.OFFLINE;
@@ -72,7 +71,7 @@ export class Station extends Emitter {
         return this;
     }
     public register(expires){
-        this.registration.register(expires);
+        return this.registration.register(expires);
     }
     public toString(options?:any) {
         return `Station(${this.contact.toString(options)})`;
