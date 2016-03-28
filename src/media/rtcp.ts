@@ -74,21 +74,11 @@ export class RtcpPacket {
 }
 const REPORT_LENGTH=24;
 const SR_REPORT_START=28;
-const RR_REPORT_START=16;
+const RR_REPORT_START=8;
 
 export class RtcpSRPacket extends RtcpPacket {
-    private static getReports(buffer:Buffer,rCount:number){
-        var reports=[];
-        for(var i=0;i<rCount;i++){
-            var buf;
-            buf=buffer.slice(SR_REPORT_START+i*REPORT_LENGTH,SR_REPORT_START+i*REPORT_LENGTH+REPORT_LENGTH);
-            reports.push(new RtcpReport(buf).toJSON());
-        }
-        return reports;
-    }
     constructor(options){
-        super(options)
-        this.reports = RtcpSRPacket.getReports(this.buffer,this.reportsCount);
+        super(options);
     }
     public reports:RtcpReport[];
     public get reportsCount(){
@@ -149,21 +139,12 @@ export class RtcpSRPacket extends RtcpPacket {
             timestamp           : this.timestamp,
             senderPacketCount   : this.senderPacketCount,
             senderOctetCount    : this.senderOctetCount,
-            reports             : RtcpSRPacket.getReports(this.buffer,this.reportsCount)
+            reports             : (this.reportsCount==0)?null:RtcpReport.getReports(this.buffer,SR_REPORT_START)
         }
     }
 
 }
 export class RtcpRRPacket extends RtcpPacket {
-    private static getReports(buffer:Buffer,rCount:number){
-        var reports=[];
-        for(var i=0;i<rCount;i++){
-            var buf;
-            buf=buffer.slice(RR_REPORT_START+i*REPORT_LENGTH,RR_REPORT_START+i*REPORT_LENGTH+REPORT_LENGTH);
-            reports.push(new RtcpReport(buf).toJSON());
-        }
-        return reports;
-    }
     constructor(options){
         super(options)
     }
@@ -186,18 +167,30 @@ export class RtcpRRPacket extends RtcpPacket {
     public toJSON(){
         return {
             version             : this.version,
+            padding             : this.padding,
+            reportsCount        : this.reportsCount,
             type                : this.type,
             length              : this.length,
             source              : this.source,
-            reports             : RtcpRRPacket.getReports(this.buffer,this.reportsCount)
+            reports             : (this.reportsCount==0)?null:RtcpReport.getReports(this.buffer,RR_REPORT_START)
         }
     }
 }
 export class RtcpReport {
-    public buffer:Buffer;
+    private buffer:Buffer;
 
     constructor(buffer:Buffer) {
         this.buffer=buffer;
+    }
+    public static getReports(buffer:Buffer,start:number){
+        var reports=[];
+        var count:number=buffer.slice(start).length/REPORT_LENGTH;
+        for(var i=0;i<count;i++){
+            var buf;
+            buf=buffer.slice(start+i*REPORT_LENGTH,start+i*REPORT_LENGTH+REPORT_LENGTH);
+            reports.push(new RtcpReport(buf).toJSON());
+        }
+        return reports;
     }
     public get source():number {
         return this.buffer.readUInt32BE(0);
@@ -255,7 +248,7 @@ export class RtcpReport {
 }
 export class RtcpSDPacket extends RtcpPacket {
     private static getSourcesCount(buffer:Buffer){
-        return buffer[0] & 0x3f;
+        return buffer[0] & 0x1f;
     }
     constructor(options){
         super(options);
@@ -303,7 +296,31 @@ export class RtcpAPPacket extends RtcpPacket {
     }
 }
 export class RtcpGBPacket extends RtcpPacket {
+    private static getSourcesCount(buffer:Buffer){
+        return buffer[0] & 0x1f;
+    }
     constructor(options){
-        super(options)
+        super(options);
+    }
+    get sources(){
+        var cnt =  RtcpGBPacket.getSourcesCount(this.buffer);
+        var list = [],ofs=4,type,len,val,source:any;
+        for(var s=0;s<cnt;s++){
+            list.push(source = {
+                id       : this.buffer.readUInt32BE(ofs)
+            });
+            ofs+=4;
+
+        }
+        return list;
+    }
+    public toJSON(){
+        return {
+            version             : this.version,
+            type                : this.type,
+            length              : this.length,
+            sources             : this.sources
+
+        }
     }
 }
