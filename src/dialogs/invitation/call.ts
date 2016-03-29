@@ -8,6 +8,7 @@ export enum CallState {
     TRYING,
     TALKING,
     RINGING,
+    DIALING,
     ENDED
 }
 export enum CallDirection {
@@ -54,6 +55,25 @@ export class Call extends Emitter {
         for(var key in options){
             this[key] = options[key];
         }
+        this.on('init',()=>{
+            this.state = CallState.INITIAL;
+        });
+        this.on('trying',()=>{
+            this.state = CallState.TRYING;
+        });
+        this.on('ringing',()=>{
+            if(this.direction==CallDirection.OUTGOING){
+                this.state = CallState.DIALING;
+            }else {
+                this.state = CallState.RINGING;
+            }
+        });
+        this.on('accept',()=>{
+            this.state = CallState.TALKING;
+        });
+        this.on('done',()=>{
+            this.state = CallState.ENDED;
+        });
     }
 
     take(){

@@ -8,8 +8,9 @@ import {InviteManager} from "./dialogs/invitation";
 
 
 export enum State {
-    OFFLINE,
     REGISTERING,
+    UNREGISTERING,
+    OFFLINE,
     ONLINE,
     DIALING,
     TALKING,
@@ -47,8 +48,6 @@ export class Station extends Emitter {
         this.onResponse = this.onResponse.bind(this);
         this.setContact(contact);
         this.setTransport(transport);
-        this.on('registering',r=>this.state = State.REGISTERING);
-        this.on('register',r=>this.state = State.ONLINE);
     }
     public setContact(contact:Contact|string):Station{
         if(contact instanceof Contact){
@@ -70,8 +69,18 @@ export class Station extends Emitter {
         }
         return this;
     }
-    public register(expires){
-        return this.registration.register(expires);
+    public register(expires=0){
+        if(expires>0){
+            this.state = State.REGISTERING;
+            return this.registration.register(expires).then(r=>{
+                this.state = this.state = State.ONLINE;
+            });
+        }else{
+            this.state = State.UNREGISTERING;
+            return this.registration.register(expires).then(r=>{
+                this.state = this.state = State.OFFLINE;
+            });
+        }
     }
     public toString(options?:any) {
         return `Station(${this.contact.toString(options)})`;
