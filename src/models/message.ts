@@ -51,6 +51,8 @@ export class Message extends Model {
         FROM                : 'From',
         TO                  : 'To',
         CONTACT             : 'Contact',
+        ROUTE               : 'Route',
+        RECORD_ROUTE        : 'Record-Route',
         EXPIRES             : 'Expires',
         WWW_AUTHENTICATE    : 'WWW-Authenticate',
         AUTHORIZATION       : 'Authorization',
@@ -112,6 +114,18 @@ export class Message extends Model {
         }else{
             return <any>contacts;
         }
+    }
+    get route():any{
+        return this.getHeader(Message.HEADERS.ROUTE)
+    }
+    set route(value:any){
+        this.setHeader(Message.HEADERS.ROUTE,value);
+    }
+    get recordRoute():any{
+        return this.getHeader(Message.HEADERS.RECORD_ROUTE)
+    }
+    set recordRoute(value:any){
+        this.setHeader(Message.HEADERS.RECORD_ROUTE,value);
     }
     set event(value:Event){
         this.setHeader(Message.HEADERS.EVENT,value);

@@ -37,6 +37,7 @@ export class OutgoingInviteDialog extends InviteDialog {
             }
         } else {
             this.call.emit('reject');
+            this.done();
             message.print()
         }
     }
@@ -110,7 +111,8 @@ export class OutgoingInviteDialog extends InviteDialog {
             sequence        : new Sequence({
                 method      : "ACK",
                 value       : 1
-            })
+            }),
+            route           : response.recordRoute?response.recordRoute:undefined
         }))
     }
     protected sendBye(){

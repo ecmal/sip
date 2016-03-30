@@ -114,7 +114,7 @@ export class Transport extends Emitter {
         }
         if(message instanceof Request){
             if(!message.contact){
-                message.contact = message.to.clone();
+                message.contact = message.from.clone();
                 message.contact.uri.host = this.localAddress;
                 message.contact.uri.port = this.localPort;
             }

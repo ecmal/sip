@@ -17,6 +17,7 @@ export class IncomingInviteDialog extends InviteDialog {
             from        : request.from,
             to          : request.to
         }));
+        MediaServer.listenTo(this.call);
         this.onResponse = this.onResponse.bind(this);
         this.onRequest = this.onRequest.bind(this);
         this.init(this.request=request)
@@ -248,13 +249,12 @@ export class IncomingInviteDialog extends InviteDialog {
         this.call.off('drop');
         if(this.call.remoteSdp){
             var sdp = this.call.remoteSdp;
-            delete this.call.remoteSdp;
-            delete this.call.localSdp;
+            //delete this.call.remoteSdp;
+            //delete this.call.localSdp;
             this.call.emit(Call.EVENTS.AUDIO.STOP,
                 sdp.audio.port,
                 sdp.connection.connectionAddress,
-                0,
-                '0.0.0.0'
+                0,'0.0.0.0'
             );
         }
         this.station.transport.off(`response:${this.call.id}`,this.onResponse);
