@@ -83,8 +83,6 @@ export class Emitter implements EventEmitter {
                 }
                 return result;
             }
-        }else{
-            console.info('NO EVENTS');
         }
     }
     public static emit(target:any,event:string,...args:any[]):void{
