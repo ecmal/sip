@@ -86,16 +86,14 @@ export class Emitter implements EventEmitter {
         }
     }
     public static emit(target:any,event:string,...args:any[]):void{
-        setTimeout(()=> {
-            var listeners = Emitter.listeners(target,event);
-            if(listeners && listeners.length){
-                for (var i = 0; i < listeners.length; i++) {
-                    listeners[i](...args);
-                }
-            }else{
-                return false;
+        //setTimeout(()=> {
+        var listeners = Emitter.listeners(target,event);
+        if(listeners && listeners.length){
+            for (var i = 0; i < listeners.length; i++) {
+                listeners[i](...args);
             }
-        },0);
+        }
+        //},0);
     }
     on(event:string, listener:Function): Emitter {
         return Emitter.on(this,event,listener);

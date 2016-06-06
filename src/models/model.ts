@@ -1,10 +1,11 @@
+import {Parser} from "../parser";
 
 export class Model  {
     protected static parser:any;
     public static new(text):Model{
         if(!Model.parser){
             Object.defineProperty(Model,'parser',<any>{
-                value: Reflect.Module.get('sip/parser').exports.Parser
+                value: Parser
             })
         }
         return Model.parser.parse(text,this);

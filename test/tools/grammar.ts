@@ -1,10 +1,8 @@
-import * as FS from "node/fs";
-import * as PT from "node/path";
+import process from "node/process";
+import Node from "../node";
 
-const PEG   = require('pegjs');
-
-const grammarDir = PT.resolve(process.argv[2]||'../peg');
-const outputPath = PT.resolve(process.argv[3]||'./sip','grammar.js');
+const grammarDir = Node.Path.resolve(process.argv[2]||'../peg');
+const outputPath = Node.Path.resolve(process.argv[3]||'./sip','grammar.js');
 console.info("GrammarDir :",grammarDir);
 console.info("OutputPath :",outputPath);
 
@@ -18,23 +16,23 @@ class Compiler {
     private config:any;
 
     private readConfig(){
-        this.config = JSON.parse(FS.readFileSync(
-            PT.resolve(grammarDir,'config.json'),'utf8'
+        this.config = JSON.parse(Node.Fs.readFileSync(
+            Node.Path.resolve(grammarDir,'config.json'),'utf8'
         ));
     }
     private readHeader(){
-        this.header = FS.readFileSync(
-            PT.resolve(grammarDir,'header.js'),'utf8'
+        this.header = Node.Fs.readFileSync(
+            Node.Path.resolve(grammarDir,'header.js'),'utf8'
         );
     }
     private readGrammar(){
-        this.grammar = FS.readFileSync(
-            PT.resolve(grammarDir,'grammar.pegjs'),'utf8'
+        this.grammar = Node.Fs.readFileSync(
+            Node.Path.resolve(grammarDir,'grammar.pegjs'),'utf8'
         );
     }
     private readWrapper(){
-        this.wrapper = FS.readFileSync(
-            PT.resolve(grammarDir,'wrapper.js'),'utf8'
+        this.wrapper = Node.Fs.readFileSync(
+            Node.Path.resolve(grammarDir,'wrapper.js'),'utf8'
         );
     }
     private read(){
@@ -87,13 +85,13 @@ class Compiler {
             //this.debug('-- CONFIG  ',this.config);
             //this.debug('-- SOURCE  ',this.source);
             //this.debug('-- WRAPPER ',this.wrapper);
-            var result = PEG.buildParser(this.source, this.config).trim();
+            var result = Node.Peg.buildParser(this.source, this.config).trim();
             //this.debug('-- RESULT  ',result);
 
             var [header,footer] = this.wrapper.split('GRAMMAR.PEG.TEMPLATE');
             var output = [header, result, footer].join('');
             //this.debug('-- OUTOUT  ',output);
-            FS.writeFileSync(outputPath, output, 'utf8');
+            Node.Fs.writeFileSync(outputPath, output, 'utf8');
             this.log(`COMPILED : ${path}`);
             return true;
         }catch(err){
@@ -105,7 +103,7 @@ class Compiler {
     }
     watch(){
         this.log(`WATCHING : ${grammarDir}`);
-        FS.watch(grammarDir,{persistent:true},(e,f)=>{
+        Node.Fs.watch(grammarDir,{persistent:true},(e,f)=>{
             var recompile = true;
             switch(f){
                 case 'header.js'     : this.readHeader(); break;
@@ -115,7 +113,7 @@ class Compiler {
                 default              : recompile = false;
             }
             if(recompile){
-                this.compile(PT.resolve(grammarDir,f));
+                this.compile(Node.Path.resolve(grammarDir,f));
             }else{
                 this.log(`IGNORED  : ${f}`);
             }

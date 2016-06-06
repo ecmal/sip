@@ -1,6 +1,7 @@
 import {Message} from "../models/message";
 import {Util} from "../models/common/utils";
 import {Transport} from "./transport";
+import Node from "../node";
 export class TcpTransport extends Transport {
     public get debug():boolean{
         return false;
@@ -29,7 +30,7 @@ export class TcpTransport extends Transport {
         this.doConnect();
     }
     protected doConnect(){
-        this.socket = Util.net.connect(<any>{
+        this.socket = Node.Net.connect(<any>{
             host        : this.remoteAddress,
             port        : this.remotePort
         });

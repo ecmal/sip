@@ -11,7 +11,7 @@ Agent.start([
     ["SP0004", "test", "WCB-SP-0004", "19435", "cfisher",   "Chad Fisher"    ]
 ]).forEach(a=>{
     a.register(3600);
-    System[`${a.contact.uri.username}`]=a;
+    system[`${a.contact.uri.username}`]=a;
 });
 
 Client.start([
@@ -28,5 +28,5 @@ Client.start([
     ["6026251619",""]
 ]).forEach(a=>{
     a.register(3600);
-    System[`PC${a.contact.uri.username}`]=a;
+    system[`PC${a.contact.uri.username}`]=a;
 });

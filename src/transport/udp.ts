@@ -1,7 +1,7 @@
-
 import {Message} from "../models/message";
 import {Util} from "../models/common/utils";
 import {Transport} from "./transport";
+import Node from "../node";
 
 export class UdpTransport extends Transport {
     public get debug():boolean{
@@ -30,7 +30,7 @@ export class UdpTransport extends Transport {
     protected doConnect(){
         Util.getLocalIpAddress().then(local=>{
             this.uri.host = local;
-            this.socket = Util.udp.createSocket("udp4");
+            this.socket = Node.Udp.createSocket("udp4");
             this.socket.on('error',this.onError.bind(this));
             this.socket.on('listening',this.onConnect.bind(this));
             this.socket.bind(this.localPort||5060,local);

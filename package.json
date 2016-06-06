@@ -10,10 +10,10 @@
     "tests"       : "test"
   },
   "libraries"     : {
-    "http"        : "0.0.1",
-    "core"        : "0.0.1",
-    "node"        : "0.0.1",
-    "runtime"     : "0.0.2"
+    "http"        : "0.0.8",
+    "core"        : "0.0.8",
+    "node"        : "0.0.8",
+    "runtime"     : "0.0.8"
   },
   "scripts"       : {
     "grammar"     : "elp run -t tools/grammar",

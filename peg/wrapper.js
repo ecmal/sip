@@ -1,11 +1,12 @@
-System.register([],function(exports){return { setters:[], execute:function(){
+system.register("sip/grammar",[],function(system,module){
 
 var Grammar = GRAMMAR.PEG.TEMPLATE;
 
 var SyntaxError = Grammar.SyntaxError;
 
-exports("SyntaxError", SyntaxError);
-exports("Grammar", Grammar);
-exports("default", Grammar);
+module.export("SyntaxError", SyntaxError);
+module.export("Grammar", Grammar);
+module.export("default", Grammar);
 
-}}});
+return { setters:[], execute:function(){}}
+});

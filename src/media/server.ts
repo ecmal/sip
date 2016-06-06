@@ -3,6 +3,9 @@ import {Call} from "../dialogs/invitation/call";
 import {Sdp} from "../models/common/sdp";
 import {RtpPacket} from "./rtp";
 import {RtcpPacket} from "./rtcp";
+import Node from "../node";
+import process from "node/process";
+
 
 export class MediaServer {
     static calls:{[k:string]:Call} = Object.create(null);
@@ -10,56 +13,53 @@ export class MediaServer {
     static RTCP_PORT = 18090;
 
     static listenTo(call:Call){
-        if(!call.localSdp){
-            call.on("audio:start",(port,host)=>{
-                MediaServer.calls[`${host}:${port}`] = call;
-            });
-            call.on("audio:stop",(port,host,nPort,nHost)=>{
-                delete MediaServer.calls[`${host}:${port}`];
-            });
-            call.on("audio:update",(port,host,oPort,oHost)=>{
-                delete MediaServer.calls[`${oPort}:${oPort}`];
-                MediaServer.calls[`${host}:${port}`] = call;
-            });
-            call.localSdp = new Sdp({
-                version             : 0,
-                origin              : {
-                    username        : call.localUsername,
-                    sessionId       : Util.random()&0xFFFFFF,
-                    sessionVersion  : Util.random()&0xFFFFFF,
-                    networkType     : "IN",
-                    addressType     : "IP4",
-                    unicastAddress  : this.instance.host
-                },
-                sessionName: call.localUsername,
-                connection: {
-                    networkType: "IN",
-                    addressType: "IP4",
-                    connectionAddress: this.instance.host
-                },
-                timing: {
-                    start: 0,
-                    stop: 0
-                },
-                media: [
-                    {
-                        type        : "audio",
-                        port        : this.instance.rtpPort,
-                        protocol    : "RTP/AVP",
-                        payloads    : [
-                            {
-                                "id": 0,
-                                "rtp": {
-                                    "codec": "PCMU",
-                                    "rate": 8000
-                                }
+        call.on("audio:start",(port,host)=>{
+            MediaServer.calls[`${host}:${port}`] = call;
+        });
+        call.on("audio:stop",(port,host,nPort,nHost)=>{
+            delete MediaServer.calls[`${host}:${port}`];
+        });
+        call.on("audio:update",(port,host,oPort,oHost)=>{
+            delete MediaServer.calls[`${oPort}:${oPort}`];
+            MediaServer.calls[`${host}:${port}`] = call;
+        });
+        return call.localSdp = new Sdp({
+            version             : 0,
+            origin              : {
+                username        : call.localUsername,
+                sessionId       : Util.random()&0xFFFFFF,
+                sessionVersion  : Util.random()&0xFFFFFF,
+                networkType     : "IN",
+                addressType     : "IP4",
+                unicastAddress  : this.instance.host
+            },
+            sessionName: call.localUsername,
+            connection: {
+                networkType: "IN",
+                addressType: "IP4",
+                connectionAddress: this.instance.host
+            },
+            timing: {
+                start: 0,
+                stop: 0
+            },
+            media: [
+                {
+                    type        : "audio",
+                    port        : this.instance.rtpPort,
+                    protocol    : "RTP/AVP",
+                    payloads    : [
+                        {
+                            "id": 0,
+                            "rtp": {
+                                "codec": "PCMU",
+                                "rate": 8000
                             }
-                        ]
-                    }
-                ]
-            });
-        }
-        return call.localSdp;
+                        }
+                    ]
+                }
+            ]
+        });
     }
     static talkTo(call:Call,sdp:Sdp){
         var newHost = sdp.connection.connectionAddress;
@@ -97,7 +97,7 @@ export class MediaServer {
     public packet:RtpPacket;
     public enabled:boolean;
     private get debug(){
-        return false;
+        return true;
     }
     send(message:Buffer,port:number,host:string){
         this.rtp.send(message,0,message.length,port,host);
@@ -110,8 +110,8 @@ export class MediaServer {
 
     constructor(){
         this.enabled = false;
-        this.rtp = Util.udp.createSocket("udp4");
-        this.rtcp = Util.udp.createSocket("udp4");
+        this.rtp = Node.Udp.createSocket("udp4");
+        this.rtcp = Node.Udp.createSocket("udp4");
         var call:Call,pack:RtpPacket;
         //this.file = require('fs').createWriteStream('media.txt');
         this.rtcp.on("message", (msg:Buffer, rinfo)=>{

@@ -1,3 +1,5 @@
+import Node from '../../node';
+
 export enum Color {
     RED=31,      RED_FG=41,
     GREEN=32,    GREEN_FG=42,
@@ -48,7 +50,7 @@ export class Util {
     public static getLocalIpAddress():Promise<string>{
         return new Promise((accept,reject)=>{
             try {
-                var dis = require('net').connect(80, 'google.com');
+                var dis = Node.Net.connect(80, 'google.com');
                 dis.on('connect', r=>{
                     var address = dis.localAddress;
                     dis.end();
@@ -61,18 +63,6 @@ export class Util {
             }
         });
 
-    }
-    static get fs():any{
-        return require('fs');
-    }
-    static get crypto():any{
-        return require('crypto');
-    }
-    static get net():any{
-        return require('net');
-    }
-    static get udp():any{
-        return require('dgram');
     }
     static toUnsigned(n:number):number{
         return ((n >>> 1) * 2 + (n & 1));
@@ -88,10 +78,10 @@ export class Util {
         return Math.round(Math.random()*0xFFFFFFFF)
     }
     static guid(){
-        return this.crypto.randomBytes(16).toString('hex');
+        return Node.Crypto.randomBytes(16).toString('hex');
     }
     static md5(text:string){
-        return this.crypto.createHash('md5').update(text).digest('hex');
+        return Node.Crypto.createHash('md5').update(text).digest('hex');
     }
     static hash(count?:number,text?){
         return this.md5(text?text.toString():Util.guid()).substring(0,count||32);
