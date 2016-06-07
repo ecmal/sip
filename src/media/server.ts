@@ -97,7 +97,7 @@ export class MediaServer {
     public packet:RtpPacket;
     public enabled:boolean;
     private get debug(){
-        return true;
+        return false;
     }
     send(message:Buffer,port:number,host:string){
         this.rtp.send(message,0,message.length,port,host);
