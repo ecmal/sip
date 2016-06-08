@@ -1,8 +1,11 @@
-import process from "node/process";
+
 import Node from "../node";
 
-const grammarDir = Node.Path.resolve(process.argv[2]||'../peg');
-const outputPath = Node.Path.resolve(process.argv[3]||'./sip','grammar.js');
+
+const process = system.node.process;
+const grammarDir = Node.Path.resolve(process.argv[2]||'./peg');
+const outputPath = Node.Path.resolve(process.argv[3]||'./out/sip','grammar.js');
+
 console.info("GrammarDir :",grammarDir);
 console.info("OutputPath :",outputPath);
 

@@ -4,7 +4,9 @@ import {Sdp} from "../models/common/sdp";
 import {RtpPacket} from "./rtp";
 import {RtcpPacket} from "./rtcp";
 import Node from "../node";
-import process from "node/process";
+
+
+const process = system.node.process;
 
 
 export class MediaServer {
