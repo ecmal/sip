@@ -1,0 +1,33 @@
+import { Emitter } from "../events";
+import { Message } from "../models/message";
+import { Request } from "../models/message/request";
+import { Uri } from "../models/common/uri";
+import { Response } from "../models/message/response";
+export declare class Transport extends Emitter {
+    static CONNECT: string;
+    static DISCONNECT: string;
+    private static separator;
+    private static indexOf(buffer);
+    uri: Uri;
+    proxy: Uri;
+    protocol: string;
+    connected: boolean;
+    localAddress: string;
+    localPort: number;
+    remoteAddress: string;
+    remotePort: number;
+    debug: boolean;
+    constructor(proxy: Uri | string);
+    request(request: Request): Promise<Response>;
+    send(message: Message): void;
+    toString(options?: any): string;
+    protected via: any;
+    protected agent: any;
+    protected processor: any;
+    protected onMessage(message: Message): void;
+    protected onRequest(request: Request): void;
+    protected onResponse(response: Response): void;
+    protected doSend(buffer: Buffer): void;
+    protected doInit(): void;
+    protected inspect(): string;
+}

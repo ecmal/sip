@@ -1,0 +1,13 @@
+{
+  "version": 3,
+  "file": "dialog.js",
+  "sourceRoot": "/Users/Sergey/Work/GH/ecmal/sip/src",
+  "sources": [
+    "dialog.ts"
+  ],
+  "names": [],
+  "mappings": ";;IAKA;QACkB,sBAAS,GAAvB,UAAwB,GAAY;YAChC,MAAM,CAAC,GAAG,CAAC,IAAI,CAAC,MAAM,CAAC,GAAG,MAAM,CAAC;QACrC,CAAC;QACa,sBAAS,GAAvB,UAAwB,GAAU;YAC9B,MAAM,CAAC,GAAG,CAAC,IAAI,EAAE,CAAC,KAAK,CAAC,OAAO,CAAC,CAAC,GAAG,CAAC,UAAA,CAAC,IAAE,OAAA,CAAC,CAAC,IAAI,EAAE,EAAR,CAAQ,CAAC,CAAC;QACtD,CAAC;QACM,mBAAM,GAAb,UAAc,QAAe,EAAE,IAAW,EAAE,IAAmB;YAAnB,oBAAmB,GAAnB,YAAmB;YAC3D,MAAM,CAAC,IAAI,MAAM,CAAC,YAAY,CAAC,SAAS,CAAC,YAAY,CAAC,SAAS,CAAC,sCAExD,QAAQ,SAAI,YAAI,CAAC,MAAM,EAAE,SAAI,YAAI,CAAC,MAAM,EAAE,gBAAW,IAAI,mDAElD,IAAI,iDAEL,IAAI,2IAIjB,CAAC,CAAC,CAAC,CAAA;QACR,CAAC;;;;QAUL,mBAAC;QALG,sBAAY,OAAe,EAAE,IAAS;YAClC,kBAAO,CAAC;YACR,IAAI,CAAC,OAAO,GAAG,OAAO,CAAC;YACvB,IAAI,CAAC,IAAI,GAAG,IAAI,CAAC;QACrB,CAAC;IACL,CAAC,AA7BD,IA6BC;;IA7BD,2CA6BC,CAAA;;;;;;;;;;;;;;;;YA7BD,2BAAA,aAAkC,gBA6BjC",
+  "sourcesContent": [
+    "import {Util} from \"../../models/common/utils\";\nimport {Station} from \"../../station\";\nimport {Call} from \"./call\";\nimport {Emitter} from \"../../events\";\n\nexport class InviteDialog extends Emitter{\n    public static encodeSdp(sdp:string[]):string {\n        return sdp.join('\\r\\n') + '\\r\\n';\n    }\n    public static decodeSdp(sdp:string):any {\n        return sdp.trim().split(/\\r?\\n/).map(p=>p.trim());\n    }\n    static getSdp(username:string, host:string, port:number = 18089) {\n        return new Buffer(InviteDialog.encodeSdp(InviteDialog.decodeSdp(`\n            v=0\n            o=${username} ${Util.random()} ${Util.random()} IN IP4 ${host}\n            s=Talk\n            c=IN IP4 ${host}\n            t=0 0\n            m=audio ${port} RTP/AVP 0 101\n            a=rtpmap:0 PCMU/8000\n            a=rtpmap:101 telephone-event/8000\n            a=fmtp:101 0-15\n        `)))\n    }\n\n    public call:Call;\n    public station:Station;\n\n    constructor(station:Station, call:Call) {\n        super();\n        this.station = station;\n        this.call = call;\n    }\n}\n\n\n\n\n\n"
+  ]
+}

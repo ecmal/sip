@@ -1,0 +1,13 @@
+{
+  "version": 3,
+  "file": "node.js",
+  "sourceRoot": "/Users/Sergey/Work/GH/ecmal/sip/src",
+  "sources": [
+    "node.ts"
+  ],
+  "names": [],
+  "mappings": ";IAAA;QACW,YAAO,GAAd,UAAe,IAAI;YACf,MAAM,CAAC,MAAM,CAAC,IAAI,CAAC,OAAO,CAAC,IAAI,CAAC,CAAC;QACrC,CAAC;QACD,sBAAW,cAAM;iBAAjB;gBACI,MAAM,CAAC,IAAI,CAAC,OAAO,CAAC,QAAQ,CAAC,CAAC;YAClC,CAAC;;;WAAA;QACD,sBAAW,YAAI;iBAAf;gBACI,MAAM,CAAC,IAAI,CAAC,OAAO,CAAC,MAAM,CAAC,CAAC;YAChC,CAAC;;;WAAA;QACD,sBAAW,aAAK;iBAAhB;gBACI,MAAM,CAAC,IAAI,CAAC,OAAO,CAAC,OAAO,CAAC,CAAC;YACjC,CAAC;;;WAAA;QACD,sBAAW,WAAG;iBAAd;gBACI,MAAM,CAAC,IAAI,CAAC,OAAO,CAAC,KAAK,CAAC,CAAC;YAC/B,CAAC;;;WAAA;QACD,sBAAW,UAAE;iBAAb;gBACI,MAAM,CAAC,IAAI,CAAC,OAAO,CAAC,IAAI,CAAC,CAAC;YAC9B,CAAC;;;WAAA;QACD,sBAAW,YAAI;iBAAf;gBACI,MAAM,CAAC,IAAI,CAAC,OAAO,CAAC,MAAM,CAAC,CAAC;YAChC,CAAC;;;WAAA;QACD,sBAAW,WAAG;iBAAd;gBACI,MAAM,CAAC,IAAI,CAAC,OAAO,CAAC,KAAK,CAAC,CAAC;YAC/B,CAAC;;;WAAA;QACD,sBAAW,UAAE;iBAAb;gBACI,MAAM,CAAC,IAAI,CAAC,OAAO,CAAC,aAAa,CAAC,CAAC;YACvC,CAAC;;;WAAA;QACD,sBAAW,YAAI;iBAAf;gBACI,MAAM,CAAC,IAAI,CAAC,OAAO,CAAC,MAAM,CAAC,CAAC;YAChC,CAAC;;;WAAA;QACD,sBAAW,cAAM;iBAAjB;gBACI,MAAM,CAAC,IAAI,CAAC,OAAO,CAAC,QAAQ,CAAC,CAAC;YAClC,CAAC;;;WAAA;QACD,sBAAW,WAAG;iBAAd;gBACI,MAAM,CAAC,IAAI,CAAC,OAAO,CAAC,OAAO,CAAC,CAAC;YACjC,CAAC;;;WAAA;QACD,sBAAW,WAAG;iBAAd;gBACI,MAAM,CAAC,IAAI,CAAC,OAAO,CAAC,OAAO,CAAC,CAAC;YACjC,CAAC;;;WAAA;QACL,WAAC;QAxCD;QAwCA,CAAC;IAAD,CAAC,AAxCD,IAwCC;;IAxCD,8BAwCC,CAAA;;;;YAxCD,mBAAA,IAwCC",
+  "sourcesContent": [
+    "export default class Node {\n    static require(path):Function {\n        return system.node.require(path);\n    }\n    static get Buffer():any{\n        return this.require('buffer');\n    }\n    static get Http():any{\n        return this.require('http');\n    }\n    static get Https():any{\n        return this.require('https');\n    }\n    static get Net():any{\n        return this.require('net');\n    }\n    static get Fs():any{\n        return this.require('fs');\n    }\n    static get Path():any{\n        return this.require('path');\n    }\n    static get Url():any{\n        return this.require('url');\n    }\n    static get Qs():any{\n        return this.require('querystring');\n    }\n    static get Zlib():any{\n        return this.require('zlib');\n    }\n    static get Crypto():any{\n        return this.require('crypto');\n    }\n    static get Udp():any{\n        return this.require('dgram');\n    }\n    static get Peg():any{\n        return this.require('pegjs');\n    }\n}"
+  ]
+}

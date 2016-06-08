@@ -1,0 +1,13 @@
+{
+  "version": 3,
+  "file": "invitation.js",
+  "sourceRoot": "/Users/Sergey/Work/GH/ecmal/sip/src",
+  "sources": [
+    "invitation.ts"
+  ],
+  "names": [],
+  "mappings": ";;;;;;;;YACQ,uDAAa",
+  "sourcesContent": [
+    "import {InviteManager} from \"./invitation/manager\";\nexport {InviteManager}\n\n\n"
+  ]
+}

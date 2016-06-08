@@ -1,0 +1,13 @@
+{
+  "version": 3,
+  "file": "transport.js",
+  "sourceRoot": "/Users/Sergey/Work/GH/ecmal/sip/src",
+  "sources": [
+    "transport.ts"
+  ],
+  "names": [],
+  "mappings": ";;;;;;;;;;;;;;YAIQ,iDAAS;YAAC,iDAAY;YAAC,iDAAY",
+  "sourcesContent": [
+    "import {Transport} from \"./transport/transport\";\nimport {TcpTransport} from \"./transport/tcp\";\nimport {UdpTransport} from \"./transport/udp\";\n\nexport {Transport,TcpTransport,UdpTransport};"
+  ]
+}

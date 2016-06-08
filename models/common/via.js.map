@@ -1,0 +1,13 @@
+{
+  "version": 3,
+  "file": "via.js",
+  "sourceRoot": "/Users/Sergey/Work/GH/ecmal/sip/src",
+  "sources": [
+    "via.ts"
+  ],
+  "names": [],
+  "mappings": ";;IAIA;QASI,sBAAQ,GAAR,UAAS,OAAY;YACjB,MAAM,CAAI,IAAI,CAAC,QAAQ,SAAI,IAAI,CAAC,OAAO,SAAI,IAAI,CAAC,SAAS,SAAI,IAAI,CAAC,IAAI,IAAG,IAAI,CAAC,IAAI,GAAC,MAAI,IAAI,CAAC,IAAM,GAAC,EAAE,IACjG,YAAI,CAAC,aAAa,CAAC,IAAI,CAAC,MAAM,CAChC,CAAC;QACP,CAAC;;;;QACL,UAAC;QAdD;YAAyB,+BAAK;QAc9B,CAAC;IAAD,CAAC,AAdD,IAcC;;IAdD,yBAcC,CAAA;;;;;;;;;;;;;YAdD,kBAAA,IAAyB,aAcxB",
+  "sourcesContent": [
+    "import {Model} from \"../model\";\nimport {Uri} from \"./uri\";\nimport {Util} from \"./utils\";\n\nexport class Via extends Model {\n\n    public protocol:string;\n    public version:string;\n    public transport:string;\n    public host:string;\n    public port:number;\n    public params:any;\n\n    toString(options?:any){\n        return `${this.protocol}/${this.version}/${this.transport} ${this.host}${this.port?`:${this.port}`:''}${\n            Util.toParamString(this.params)\n        }`;\n    }\n}"
+  ]
+}

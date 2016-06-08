@@ -1,0 +1,13 @@
+{
+  "version": 3,
+  "file": "agent.js",
+  "sourceRoot": "/Users/Sergey/Work/GH/ecmal/sip/src",
+  "sources": [
+    "agent.ts"
+  ],
+  "names": [],
+  "mappings": ";;IAEA;QAII,wBAAQ,GAAR,UAAS,OAAY;YACjB,MAAM,CAAI,IAAI,CAAC,IAAI,SAAI,IAAI,CAAC,OAAO,IAAG,IAAI,CAAC,OAAO,GAAC,OAAK,IAAI,CAAC,OAAO,MAAG,GAAC,EAAE,CAAE,CAAC;QACjF,CAAC;;;;QACL,YAAC;QAPD;YAA2B,+BAAK;QAOhC,CAAC;IAAD,CAAC,AAPD,IAOC;;IAPD,6BAOC,CAAA;;;;;;;;;;YAPD,oBAAA,MAA2B,aAO1B",
+  "sourcesContent": [
+    "import {Model} from \"../model\";\nimport {Uri} from \"./uri\";\nexport class Agent extends Model {\n    public name:string;\n    public version:string;\n    public comment:string;\n    toString(options?:any){\n        return `${this.name}/${this.version}${this.comment?` (${this.comment})`:''}`;\n    }\n}"
+  ]
+}

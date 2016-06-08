@@ -1,0 +1,13 @@
+{
+  "version": 3,
+  "file": "version.js",
+  "sourceRoot": "/Users/Sergey/Work/GH/ecmal/sip/src",
+  "sources": [
+    "version.ts"
+  ],
+  "names": [],
+  "mappings": ";;IAEA;QAQI,0BAAQ,GAAR;YACI,MAAM,CAAC,SAAO,IAAI,CAAC,KAAK,SAAI,IAAI,CAAC,KAAO,CAAA;QAC5C,CAAC;;;YATM,eAAO,GAAW,IAAI,OAAO,CAAC;gBACjC,KAAK,EAAC,CAAC;gBACP,KAAK,EAAC,CAAC;aACV,CAAC,CAAC;;QAOP,cAAC;QAXD;YAA6B,+BAAK;QAWlC,CAAC;IAAD,CAAC,AAXD,IAWC;;IAXD,iCAWC,CAAA;;;;;;;;;;YAXD,sBAAA,QAA6B,aAW5B",
+  "sourcesContent": [
+    "import {Model} from \"../model\";\nimport {Uri} from \"./uri\";\nexport class Version extends Model {\n    static SIP_2_0:Version = new Version({\n        major:2,\n        minor:0\n    });\n    \n    minor:number;\n    major:number;\n    toString(){\n        return `SIP/${this.major}.${this.minor}`\n    }\n}"
+  ]
+}

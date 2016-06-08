@@ -1,0 +1,13 @@
+{
+  "version": 3,
+  "file": "models.js",
+  "sourceRoot": "/Users/Sergey/Work/GH/ecmal/sip/src",
+  "sources": [
+    "models.ts"
+  ],
+  "names": [],
+  "mappings": ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;YAgBI,+BAAG;YAAC,2CAAO;YAAC,2CAAO;YAAC,+BAAG;YAAC,kCAAI;YAAC,qCAAK;YAAC,+BAAG;YACtC,8CAAQ;YAAC,iDAAS;YAAC,qCAAK;YACxB,2CAAO;YACP,2CAAO;YACP,8CAAQ",
+  "sourcesContent": [
+    "import {Uri} from \"./models/common/uri\"\nimport {Contact} from \"./models/common/contact\"\nimport {Challenge} from \"./models/common/challenge\"\nimport {Event} from \"./models/common/event\"\nimport {Version} from \"./models/common/version\"\nimport {Via} from \"./models/common/via\"\nimport {Mime} from \"./models/common/mime\"\nimport {Agent} from \"./models/common/agent\"\nimport {Sequence} from \"./models/common/sequence\"\nimport {Sdp} from \"./models/common/sdp\"\nimport {Request} from \"./models/message/request\"\nimport {Response} from \"./models/message/response\"\nimport {Message} from \"./models/message\"\n\n\nexport {\n    Uri,Contact,Version,Via,Mime,Agent,Sdp,\n    Sequence,Challenge,Event,\n    Message,\n    Request,\n    Response\n}"
+  ]
+}

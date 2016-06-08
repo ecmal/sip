@@ -1,0 +1,13 @@
+{
+  "version": 3,
+  "file": "sequence.js",
+  "sourceRoot": "/Users/Sergey/Work/GH/ecmal/sip/src",
+  "sources": [
+    "sequence.ts"
+  ],
+  "names": [],
+  "mappings": ";;IAEA;QAGI,2BAAQ,GAAR,UAAS,OAAY;YACjB,MAAM,CAAI,IAAI,CAAC,KAAK,SAAI,IAAI,CAAC,MAAQ,CAAC;QAC1C,CAAC;;;;QACL,eAAC;QAND;YAA8B,+BAAK;QAMnC,CAAC;IAAD,CAAC,AAND,IAMC;;IAND,mCAMC,CAAA;;;;;;;;;;YAND,uBAAA,SAA8B,aAM7B",
+  "sourcesContent": [
+    "import {Model} from \"../model\";\nimport {Uri} from \"./uri\";\nexport class Sequence extends Model {\n    public method:string;\n    public value:number;\n    toString(options?:any){\n        return `${this.value} ${this.method}`;\n    }\n}"
+  ]
+}

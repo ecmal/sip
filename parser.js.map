@@ -1,0 +1,13 @@
+{
+  "version": 3,
+  "file": "parser.js",
+  "sourceRoot": "/Users/Sergey/Work/GH/ecmal/sip/src",
+  "sources": [
+    "parser.ts"
+  ],
+  "names": [],
+  "mappings": ";;IAIA;QACkB,gBAAS,GAAvB,UAAwB,IAAW;YAC/B,EAAE,CAAA,CAAC,IAAI,CAAC,KAAK,CAAC,OAAO,CAAC,IAAI,IAAI,CAAC,IAAI,EAAE,CAAC,KAAK,CAAC,OAAO,CAAC,CAAC,CAAC,CAAC,CAAC,KAAK,CAAC,WAAW,CAAC,CAAC,CAAA,CAAC;gBACxE,MAAM,CAAC,IAAI,CAAC,OAAO,CAAC,QAAQ,EAAC,MAAM,CAAC,CAAC,IAAI,EAAE,CAAC,KAAK,CAAC,MAAM,CAAC,CAAC,GAAG,CAAC,UAAA,CAAC,IAAE,OAAA,CAAC,CAAC,IAAI,EAAE,EAAR,CAAQ,CAAC,CAAC,IAAI,CAAC,MAAM,CAAC,GAAC,MAAM,CAAC;YACnG,CAAC;YAAA,IAAI,CAAA,CAAC;gBACF,MAAM,CAAC,IAAI,CAAC;YAChB,CAAC;QACL,CAAC;QACa,YAAK,GAAnB,UAAuB,OAAc,EAAE,KAAiB;YACpD,MAAM,CAAI,iBAAO,CAAC,KAAK,CAAC,MAAM,CAAC,SAAS,CAAC,OAAO,CAAC,EAAC;gBAC9C,SAAS,EAAK,KAAK,CAAC,IAAI,IAAE,OAAO;gBACjC,MAAM,EAAQ,MAAM;aACvB,CAAC,CAAA;QACN,CAAC;QACL,aAAC;QAdD;QAcA,CAAC;IAAD,CAAC,AAdD,IAcC;;IAdD,+BAcC,CAAA;;;;;;;;;;;;;YAdD,qBAAA,MAcC",
+  "sourcesContent": [
+    "import {Grammar} from \"./grammar\";\nimport {Model} from \"./models/model\";\nimport * as Models from \"./models\";\n\nexport class Parser {\n    public static normalize(text:string):string{\n        if(text.match(/\\r?\\n/) && text.trim().split(/\\r?\\n/)[0].match(/SIP\\/2\\.0/)){\n            return text.replace(/\\r?\\n/g,'\\r\\n').trim().split('\\r\\n').map(l=>l.trim()).join('\\r\\n')+'\\r\\n';\n        }else{\n            return text;\n        }\n    }\n    public static parse<T>(content:string, model?:{new():T;}):T{\n        return <T>Grammar.parse(Parser.normalize(content),{\n            startRule   : model.name||'Start',\n            Models      : Models\n        })\n    }\n}\n\n"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "version": 3,
+  "file": "event.js",
+  "sourceRoot": "/Users/Sergey/Work/GH/ecmal/sip/src",
+  "sources": [
+    "event.ts"
+  ],
+  "names": [],
+  "mappings": ";;IAEA;QAGI,wBAAQ,GAAR,UAAS,OAAY;YAArB,iBAIC;YAHG,MAAM,CAAI,IAAI,CAAC,IAAI,UAAI,IAAI,CAAC,MAAM,GAAC,MAAM,CAAC,IAAI,CAAC,IAAI,CAAC,MAAM,CAAC,CAAC,GAAG,CAC3D,UAAA,CAAC,IAAE,OAAA,OAAI,CAAC,SAAI,KAAI,CAAC,MAAM,CAAC,CAAC,CAAC,CAAE,EAAzB,CAAyB,CAC/B,CAAC,IAAI,CAAC,EAAE,CAAC,GAAC,EAAE,CAAE,CAAC;QACpB,CAAC;;;;QACL,YAAC;QARD;YAA2B,+BAAK;QAQhC,CAAC;IAAD,CAAC,AARD,IAQC;;IARD,6BAQC,CAAA;;;;;;;;;;YARD,oBAAA,MAA2B,aAQ1B",
+  "sourcesContent": [
+    "import {Model} from \"../model\";\nimport {Uri} from \"./uri\";\nexport class Event extends Model {\n    public type:string;\n    public params:any;\n    toString(options?:any){\n        return `${this.type} ${this.params?Object.keys(this.params).map(\n            k=>`;${k}=${this.params[k]}`\n        ).join(''):''}`;\n    }\n}"
+  ]
+}

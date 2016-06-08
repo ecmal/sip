@@ -1,0 +1,13 @@
+{
+  "version": 3,
+  "file": "manager.js",
+  "sourceRoot": "/Users/Sergey/Work/GH/ecmal/sip/src",
+  "sources": [
+    "manager.ts"
+  ],
+  "names": [],
+  "mappings": ";;IASA;QAYI,iCAAS,GAAT,UAAU,OAAe;YACrB,EAAE,CAAA,CAAC,CAAC,IAAI,CAAC,MAAM,IAAI,OAAO,CAAC,MAAM,IAAE,QAAQ,CAAC,CAAA,CAAC;gBACzC,IAAI,CAAC,YAAY,CAAC,OAAO,EAAC,+BAAoB,CAAC,CAAC;YACpD,CAAC;QACL,CAAC;QACD,kCAAU,GAAV,UAAW,EAAU;YACjB,EAAE,CAAA,CAAC,CAAC,IAAI,CAAC,MAAM,CAAC,CAAA,CAAC;gBACb,IAAI,CAAC,YAAY,CAAC,IAAI,iBAAO,CAAC;oBAC1B,MAAM,EAAI,YAAI,CAAC,IAAI,EAAE;oBACrB,IAAI,EAAM,IAAI,CAAC,OAAO,CAAC,OAAO;oBAC9B,EAAE,EAAQ,EAAE;iBACf,CAAC,EAAC,+BAAoB,CAAC,CAAA;YAC5B,CAAC;QACL,CAAC;QAES,oCAAY,GAAtB,UAAuB,OAAe,EAAC,IAEtC;YAFD,iBAOC;YAJG,IAAI,CAAC,MAAM,GAAG,IAAI,IAAI,CAAC,IAAI,CAAC,OAAO,EAAC,OAAO,CAAC,CAAC;YAC7C,IAAI,CAAC,MAAM,CAAC,IAAI,CAAC,MAAM,EAAC;gBACpB,KAAI,CAAC,MAAM,GAAG,IAAI,CAAA;YACtB,CAAC,CAAC,CAAC;QACP,CAAC;QACL,oBAAC;QA5BG,uBAAY,OAAe;YACvB,IAAI,CAAC,OAAO,GAAG,OAAO,CAAC;YACvB,IAAI,CAAC,SAAS,GAAG,IAAI,CAAC,SAAS,CAAC,IAAI,CAAC,IAAI,CAAC,CAAC;YAC3C,IAAI,CAAC,OAAO,CAAC,EAAE,CAAC,SAAS,EAAC,IAAI,CAAC,SAAS,CAAC,CAAC;QAC9C,CAAC;IAwBL,CAAC,AAnCD,IAmCC;;IAnCD,6CAmCC,CAAA;;;;;;;;;;;;;;;;;;;;;;;;;;;;YAnCD,4BAAA,aAmCC",
+  "sourcesContent": [
+    "import {Contact} from \"../../models/common/contact\";\nimport {Call} from \"./call\";\nimport {Station} from \"../../station\";\nimport {InviteDialog} from \"./dialog\";\nimport {Request} from \"../../models/message/request\";\nimport {IncomingInviteDialog} from \"./incoming\";\nimport {OutgoingInviteDialog} from \"./outgoing\";\nimport {Util} from \"../../models/common/utils\";\n\nexport class InviteManager {\n\n    public call:Call;\n    public dialog:InviteDialog;\n    public station:Station;\n\n   \n    constructor(station:Station){\n        this.station = station;\n        this.onRequest = this.onRequest.bind(this);\n        this.station.on('request',this.onRequest);\n    }\n    onRequest(message:Request){\n        if(!this.dialog && message.method==\"INVITE\"){\n            this.createDialog(message,IncomingInviteDialog);\n        }\n    }\n    sendInvite(to:Contact){\n        if(!this.dialog){\n            this.createDialog(new Request({\n                callId  : Util.guid(),\n                from    : this.station.contact,\n                to      : to\n            }),OutgoingInviteDialog)\n        }\n    }\n\n    protected createDialog(request:Request,type:{\n        new(station:Station,request:Request):InviteDialog\n    }){\n        this.dialog = new type(this.station,request);\n        this.dialog.once('done',()=>{\n            this.dialog = null\n        });\n    }\n}"
+  ]
+}

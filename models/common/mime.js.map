@@ -1,0 +1,13 @@
+{
+  "version": 3,
+  "file": "mime.js",
+  "sourceRoot": "/Users/Sergey/Work/GH/ecmal/sip/src",
+  "sources": [
+    "mime.ts"
+  ],
+  "names": [],
+  "mappings": ";;IAEA;QAQI,uBAAQ,GAAR,UAAS,OAAY;YAArB,iBAIC;YAHG,MAAM,CAAI,IAAI,CAAC,IAAI,SAAI,IAAI,CAAC,OAAO,IAAG,IAAI,CAAC,MAAM,GAAC,MAAM,CAAC,IAAI,CAAC,IAAI,CAAC,MAAM,CAAC,CAAC,GAAG,CAC1E,UAAA,CAAC,IAAE,OAAA,OAAI,CAAC,SAAI,KAAI,CAAC,MAAM,CAAC,CAAC,CAAC,CAAE,EAAzB,CAAyB,CAC/B,CAAC,IAAI,CAAC,EAAE,CAAC,GAAC,EAAE,CAAE,CAAC;QACpB,CAAC;;;YAXM,QAAG,GAAG,IAAI,IAAI,CAAC;gBAClB,IAAI,EAAU,aAAa;gBAC3B,OAAO,EAAO,KAAK;aACtB,CAAC,CAAC;;QASP,WAAC;QAbD;YAA0B,+BAAK;QAa/B,CAAC;IAAD,CAAC,AAbD,IAaC;;IAbD,2BAaC,CAAA;;;;;;;;;;YAbD,mBAAA,KAA0B,aAazB",
+  "sourcesContent": [
+    "import {Model} from \"../model\";\nimport {Uri} from \"./uri\";\nexport class Mime extends Model {\n    static SDP = new Mime({\n        type        : 'application',\n        subtype     : 'sdp'\n    });\n    public type:string;\n    public subtype:Uri;\n    public params:any;\n    toString(options?:any){\n        return `${this.type}/${this.subtype}${this.params?Object.keys(this.params).map(\n            k=>`;${k}=${this.params[k]}`\n        ).join(''):''}`;\n    }\n}"
+  ]
+}
