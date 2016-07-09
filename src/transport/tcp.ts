@@ -34,32 +34,57 @@ export class TcpTransport extends Transport {
             host        : this.remoteAddress,
             port        : this.remotePort
         });
-        this.socket.once('connect',this.onConnect.bind(this));
+        this.socket.on('connect',this.onConnect.bind(this));
         this.socket.on('error',this.onError.bind(this));
     }
+    protected doReconnect(){
+        this.socket.destroy();
+        this.socket.connect({
+            host : this.remoteAddress,
+            port : this.remotePort
+        });
+    }
+
+    private ping:number;
+
     protected onConnect(){
-        this.socket.once('close',this.onClose.bind(this));
+        this.socket.on('close',this.onClose.bind(this));
         this.socket.on('data',this.processor);
         this.via.host = this.socket.localAddress;
         this.via.port = this.socket.localPort;
         this.socket['connected'] = true;
+        if(!this.ping){
+            this.ping=setInterval(()=>{
+                this.socket.write('Keep Alive');
+                this.emit('ping');
+            },60*10*1000);
+        }
         this.emit('connect',this);
         while(this.queue.length){
             this.send(this.queue.shift());
         }
     }
     protected onError(error){
+        if(this.ping){
+            clearInterval(this.ping);
+            this.ping = null;
+        }
         this.emit('error',error,this);
-        this.onClose()
+        setTimeout(()=>this.doReconnect(), 5000);
+        //this.onClose()
     }
     protected onClose(){
-        this.doDestroy();
+        if(this.ping){
+            clearInterval(this.ping);
+            this.ping = null;
+        }
+        //this.doDestroy();
         this.emit('disconnect',this);
     }
     protected doDestroy(){
         if(this.socket) {
-            this.socket.destroy();
-            this.socket = null;
+            //this.socket.destroy();
+            //this.socket = null;
         }
     }
     protected doSend(buffer:Buffer){

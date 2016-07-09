@@ -73,14 +73,18 @@ export class Station extends Emitter {
         if(expires>0){
             this.state = State.REGISTERING;
             return this.registration.register(expires).then(r=>{
-                this.state = this.state = State.ONLINE;
+                this.state = State.ONLINE;
                 this.emit('register');
+            }).catch(e=>{
+                this.state = State.OFFLINE;
             });
         }else{
             this.state = State.UNREGISTERING;
             return this.registration.register(expires).then(r=>{
-                this.state = this.state = State.OFFLINE;
+                this.state = State.OFFLINE;
                 this.emit('unregister');
+            }).catch(e=>{
+                this.state = State.OFFLINE;
             });
         }
     }

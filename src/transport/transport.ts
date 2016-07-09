@@ -101,7 +101,7 @@ export class Transport extends Emitter {
                     message : 'Request Timeout',
                     callId  : request.callId
                 }))
-            },60000);
+            },10000);
             this.send(request);
         })
     }
